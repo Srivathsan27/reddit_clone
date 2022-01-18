@@ -1,0 +1,6 @@
+server/node_modules
+web/node_modules
+server/src
+server/yarn.lock
+web/yarn.lock
+web/.next

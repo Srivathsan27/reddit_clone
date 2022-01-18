@@ -1,0 +1,6 @@
+fragment user_all on User {
+  id
+  createdAt
+  updatedAt
+  username
+}
