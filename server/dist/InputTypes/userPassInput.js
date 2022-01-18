@@ -21,6 +21,10 @@ __decorate([
     (0, type_graphql_1.Field)(),
     __metadata("design:type", String)
 ], UserPassInput.prototype, "password", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], UserPassInput.prototype, "email", void 0);
 UserPassInput = __decorate([
     (0, type_graphql_1.InputType)()
 ], UserPassInput);

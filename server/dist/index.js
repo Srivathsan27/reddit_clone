@@ -21,13 +21,14 @@ const type_graphql_1 = require("type-graphql");
 const user_1 = require("./resolvers/user");
 const graphqlPlayground_1 = require("apollo-server-core/dist/plugin/landingPage/graphqlPlayground");
 const express_session_1 = __importDefault(require("express-session"));
-const connect_pg_simple_1 = __importDefault(require("connect-pg-simple"));
+const connect_mongodb_session_1 = __importDefault(require("connect-mongodb-session"));
 const consts_1 = require("./constants/consts");
 const cors_1 = __importDefault(require("cors"));
-const pg_1 = __importDefault(require("pg"));
 const post_1 = require("./resolvers/post");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
+    const mongoStore = (0, connect_mongodb_session_1.default)(express_session_1.default);
+    // sendEmail("bob@bob.com", "this is a test email", "Test");
     const orm = yield core_1.MikroORM.init(mikro_orm_config_1.default);
     orm.getMigrator().up();
     // const t = 1;
@@ -36,20 +37,15 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         credentials: true,
         origin: "http://localhost:3000",
     }));
-    const pool = new pg_1.default.Pool({
-        database: "fstutorial",
-        user: "srivathsan",
-        password: "srivathsan",
-    });
     app.use((0, express_session_1.default)({
         secret: "sifbvivnuiklhvniukjfhbnfvvakfbiu4387tyifhiuyagfbeiukgh93ty7oih87iryhg8o73iq4yrhf8o7w3iryc",
         name: consts_1.cookieName,
         resave: false,
         saveUninitialized: false,
-        store: new ((0, connect_pg_simple_1.default)(express_session_1.default))({
-            disableTouch: true,
-            createTableIfMissing: true,
-            pool,
+        store: new mongoStore({
+            databaseName: "Cookie-Store",
+            uri: "mongodb://127.0.0.1:27017/",
+            collection: "mySessions",
         }),
         cookie: {
             httpOnly: true,

@@ -4,17 +4,18 @@ import { title } from "process";
 import { createURQLClient } from "../cache/client";
 import Navbar from "../components/Nav/Navbar";
 import { useMeQuery, usePostsQuery } from "../generated/graphql";
+import { isServer } from "../utils/isServer";
 
 const Index = () => {
-  const [{ data, fetching }] = useMeQuery();
+  const [{ data, fetching }] = useMeQuery({
+    pause: isServer(),
+  });
 
   const [{ data: postsData, fetching: loadingPosts }] = usePostsQuery();
 
-  let body: JSX.Element = (
-    <>
-      <div>Hello World</div>
-    </>
-  );
+  console.log(data);
+
+  let body: JSX.Element = <div>Hello World</div>;
 
   let nav: any = null;
 
@@ -58,4 +59,4 @@ const Index = () => {
   );
 };
 
-export default withUrqlClient(createURQLClient)(Index);
+export default withUrqlClient(createURQLClient, { ssr: true })(Index);

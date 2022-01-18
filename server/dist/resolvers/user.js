@@ -32,6 +32,10 @@ const argon2_1 = __importDefault(require("argon2"));
 const core_1 = require("@mikro-orm/core");
 const express_session_1 = require("express-session");
 const consts_1 = require("../constants/consts");
+const sendEmail_1 = require("../utils/sendEmail");
+const uuid_1 = require("uuid");
+const token_1 = require("../store/PasswordChange/token");
+const mongoose_1 = require("mongoose");
 let FieldError = class FieldError {
 };
 __decorate([
@@ -91,6 +95,7 @@ let UserResolver = class UserResolver {
             const user = em.create(User_1.User, {
                 username: input.username,
                 password: hashedPassword,
+                email: input.email,
             });
             try {
                 yield em.persistAndFlush(user);
@@ -167,6 +172,24 @@ let UserResolver = class UserResolver {
             }
         }));
     }
+    forgotPassword({ em }, email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield em.findOne(User_1.User, { email });
+            if (!user) {
+                return true;
+            }
+            yield (0, mongoose_1.connect)("mongodb://127.0.0.1:27017/change-password");
+            let id = (0, uuid_1.v4)();
+            const token = new token_1.Token({
+                token: id,
+                userId: user.id,
+            });
+            yield token.save();
+            const html = `<a href="http://localhost:3000/change-password/${id}">Change Password</a>`;
+            yield (0, sendEmail_1.sendEmail)(email, html, "Forgot Password Request");
+            return true;
+        });
+    }
 };
 __decorate([
     (0, type_graphql_1.Query)(() => [User_1.User]),
@@ -205,6 +228,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "logout", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(1, (0, type_graphql_1.Arg)("email")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "forgotPassword", null);
 UserResolver = __decorate([
     (0, type_graphql_1.Resolver)()
 ], UserResolver);

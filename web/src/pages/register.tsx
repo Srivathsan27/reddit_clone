@@ -1,8 +1,10 @@
 import { Button, FormControl, FormLabel, Input } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
+import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import { FC } from "react";
 import { useMutation } from "urql";
+import { createURQLClient } from "../cache/client";
 import FormInput from "../components/FormInput";
 import Wrapper from "../components/UI/Wrapper";
 import { useRegisterMutation } from "../generated/graphql";
@@ -20,9 +22,10 @@ const Register: FC<RegisterProps> = ({}) => {
           username: "",
           password: "",
           "confirm-password": "",
+          email: "",
         }}
         onSubmit={async (
-          { username, password, "confirm-password": conpas },
+          { username, password, "confirm-password": conpas, email },
           { setErrors }
         ) => {
           if (conpas !== password) {
@@ -31,7 +34,7 @@ const Register: FC<RegisterProps> = ({}) => {
               password: "Passwords do not match",
             });
           } else {
-            const response = await register({ username, password });
+            const response = await register({ username, password, email });
             if (response.data?.register.errors) {
               setErrors(toErrorMap(response.data.register.errors));
             } else {
@@ -45,6 +48,14 @@ const Register: FC<RegisterProps> = ({}) => {
         {({ isSubmitting }) => (
           <Form>
             <FormInput name="username" label="Username" />
+            <FormInput
+              name="email"
+              label="Email"
+              boxProps={{
+                mt: 4,
+              }}
+              type="email"
+            />
             <FormInput
               boxProps={{
                 mt: 4,
@@ -78,4 +89,4 @@ const Register: FC<RegisterProps> = ({}) => {
   );
 };
 
-export default Register;
+export default withUrqlClient(createURQLClient)(Register);

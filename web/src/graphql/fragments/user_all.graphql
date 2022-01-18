@@ -3,4 +3,5 @@ fragment user_all on User {
   createdAt
   updatedAt
   username
+  email
 }
