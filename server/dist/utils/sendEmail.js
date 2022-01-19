@@ -19,7 +19,7 @@ const sendEmail = function (to, html, subject) {
         // Generate test SMTP service account from ethereal.email
         // Only needed if you don't have a real mail account for testing
         // let testAccount = await nodemailer.createTestAccount();
-        // console.log(testAccount);
+        console.log("Here!");
         // create reusable transporter object using the default SMTP transport
         let transporter = nodemailer_1.default.createTransport({
             host: "smtp.ethereal.email",

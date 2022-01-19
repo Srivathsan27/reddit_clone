@@ -6,7 +6,10 @@ import { FC } from "react";
 import { createURQLClient } from "../cache/client";
 import FormInput from "../components/FormInput";
 import Wrapper from "../components/UI/Wrapper";
-import { useLoginMutation } from "../generated/graphql";
+import {
+  useForgotPasswordMutation,
+  useLoginMutation,
+} from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 
 interface LoginProps {}
@@ -15,6 +18,11 @@ const Login: FC<LoginProps> = ({}) => {
   const [mysteryProp, login] = useLoginMutation();
   console.log(mysteryProp);
   const router = useRouter();
+
+  const forgotPasswordHandler = () => {
+    router.push("/forgot-password");
+  };
+
   return (
     <Wrapper type="small">
       <Formik
@@ -57,6 +65,17 @@ const Login: FC<LoginProps> = ({}) => {
                   mt: 4,
                 }}
               />
+
+              <Button
+                mt={4}
+                type="button"
+                variant="link"
+                colorScheme="green"
+                onClick={forgotPasswordHandler}
+              >
+                Forgot Password?
+              </Button>
+
               <Button
                 mt={4}
                 type="submit"

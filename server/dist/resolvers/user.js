@@ -36,6 +36,7 @@ const sendEmail_1 = require("../utils/sendEmail");
 const uuid_1 = require("uuid");
 const token_1 = require("../store/PasswordChange/token");
 const mongoose_1 = require("mongoose");
+const isValidEmail_1 = require("../utils/isValidEmail");
 let FieldError = class FieldError {
 };
 __decorate([
@@ -174,8 +175,13 @@ let UserResolver = class UserResolver {
     }
     forgotPassword({ em }, email) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!(0, isValidEmail_1.isValidEmail)(email)) {
+                console.log("invalid email");
+                return false;
+            }
             const user = yield em.findOne(User_1.User, { email });
             if (!user) {
+                console.log("invalid user");
                 return true;
             }
             yield (0, mongoose_1.connect)("mongodb://127.0.0.1:27017/change-password");
@@ -188,6 +194,46 @@ let UserResolver = class UserResolver {
             const html = `<a href="http://localhost:3000/change-password/${id}">Change Password</a>`;
             yield (0, sendEmail_1.sendEmail)(email, html, "Forgot Password Request");
             return true;
+        });
+    }
+    changePassword({ em, req }, password, token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (password.length < 3) {
+                return {
+                    errors: [
+                        {
+                            field: "password",
+                            message: "Password must be atleast 3 characters long.",
+                        },
+                    ],
+                };
+            }
+            const authToken = yield token_1.Token.findOne({ token: token })
+                .select("token userId")
+                .exec();
+            if (!authToken) {
+                return {
+                    errors: [
+                        {
+                            field: "token",
+                            message: "Invalid token. Token has expired!",
+                        },
+                    ],
+                };
+            }
+            const id = authToken.userId;
+            const user = yield em.findOne(User_1.User, { id });
+            const hasedNewPassword = yield argon2_1.default.hash(password);
+            if (user) {
+                user.password = hasedNewPassword;
+                yield em.persistAndFlush(user);
+                req.session.userId = user.id;
+                req.session.cookie = new express_session_1.Cookie();
+                return { user };
+            }
+            else {
+                return null;
+            }
         });
     }
 };
@@ -236,6 +282,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "forgotPassword", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => UserResponse, { nullable: true }),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(1, (0, type_graphql_1.Arg)("password")),
+    __param(2, (0, type_graphql_1.Arg)("token")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "changePassword", null);
 UserResolver = __decorate([
     (0, type_graphql_1.Resolver)()
 ], UserResolver);
