@@ -39,7 +39,11 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
             if (!response.data?.changePassword) {
               setBody(<Text>Oops, Something went wrong!</Text>);
             } else if (response.data.changePassword.errors) {
-              setErrors(toErrorMap(response.data.changePassword.errors));
+              const errMap = toErrorMap(response.data.changePassword.errors);
+              if (!errMap[token]) setErrors(errMap);
+              else {
+                setBody(<Text>Token Has Expired!</Text>);
+              }
             } else {
               router.replace("/");
             }

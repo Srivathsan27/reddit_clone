@@ -13,7 +13,6 @@ const Index = () => {
 
   const [{ data: postsData, fetching: loadingPosts }] = usePostsQuery();
 
-  console.log(data);
 
   let body: JSX.Element = <div>Hello World</div>;
 
