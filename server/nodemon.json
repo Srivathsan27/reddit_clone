@@ -1,0 +1,6 @@
+{
+  "env": {
+    "POSTGRES_USER": "srivathsan",
+    "POSTGRES_PASS": "srivathsan"
+  }
+}

@@ -13,8 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
-const core_1 = require("@mikro-orm/core");
-const mikro_orm_config_1 = __importDefault(require("./mikro-orm.config"));
 const apollo_server_express_1 = require("apollo-server-express");
 const express_1 = __importDefault(require("express"));
 const type_graphql_1 = require("type-graphql");
@@ -25,12 +23,24 @@ const connect_mongodb_session_1 = __importDefault(require("connect-mongodb-sessi
 const consts_1 = require("./constants/consts");
 const cors_1 = __importDefault(require("cors"));
 const post_1 = require("./resolvers/post");
+const typeorm_1 = require("typeorm");
+const User_1 = require("./entities/User");
+const Post_1 = require("./entities/Post");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
+    console.log(process.env.POSTGRES_USER);
+    console.log(process.env.POSTGRES_PASS);
     const mongoStore = (0, connect_mongodb_session_1.default)(express_session_1.default);
     // sendEmail("bob@bob.com", "this is a test email", "Test");
-    const orm = yield core_1.MikroORM.init(mikro_orm_config_1.default);
-    orm.getMigrator().up();
+    const connection = (0, typeorm_1.createConnection)({
+        type: "postgres",
+        database: "fstutorial2",
+        username: process.env.POSTGRES_USER,
+        password: process.env.POSTGRES_PASS,
+        logging: true,
+        synchronize: true,
+        entities: [User_1.User, Post_1.Post],
+    });
     // const t = 1;
     app.use((0, cors_1.default)({
         // allowedHeaders: "*",
@@ -59,7 +69,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             validate: false,
         }),
         plugins: [graphqlPlayground_1.ApolloServerPluginLandingPageGraphQLPlayground],
-        context: ({ req, res }) => ({ em: orm.em, req, res }),
+        context: ({ req, res }) => ({ req, res }),
     });
     yield apolloServer.start();
     apolloServer.applyMiddleware({

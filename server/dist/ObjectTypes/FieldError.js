@@ -9,38 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Post = void 0;
-const typeorm_1 = require("typeorm");
+exports.FieldError = void 0;
 const type_graphql_1 = require("type-graphql");
-let Post = class Post extends typeorm_1.BaseEntity {
+let FieldError = class FieldError {
 };
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.PrimaryGeneratedColumn)(),
-    __metadata("design:type", Number)
-], Post.prototype, "id", void 0);
-__decorate([
-    (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.CreateDateColumn)(),
-    __metadata("design:type", Date)
-], Post.prototype, "createdAt", void 0);
-__decorate([
-    (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.UpdateDateColumn)(),
-    __metadata("design:type", Date)
-], Post.prototype, "updatedAt", void 0);
-__decorate([
-    (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Post.prototype, "title", void 0);
+], FieldError.prototype, "field", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Post.prototype, "content", void 0);
-Post = __decorate([
-    (0, type_graphql_1.ObjectType)(),
-    (0, typeorm_1.Entity)()
-], Post);
-exports.Post = Post;
+], FieldError.prototype, "message", void 0);
+FieldError = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], FieldError);
+exports.FieldError = FieldError;

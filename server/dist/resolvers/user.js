@@ -37,45 +37,34 @@ const uuid_1 = require("uuid");
 const token_1 = require("../store/PasswordChange/token");
 const mongoose_1 = require("mongoose");
 const isValidEmail_1 = require("../utils/isValidEmail");
-const UserResponse_1 = require("./ObjectTypes/UserResponse");
-const BooleanResponse_1 = require("./ObjectTypes/BooleanResponse");
+const UserResponse_1 = require("../ObjectTypes/UserResponse");
+const BooleanResponse_1 = require("../ObjectTypes/BooleanResponse");
+const isUsernamePasswordValid_1 = require("../utils/isUsernamePasswordValid");
 let UserResolver = class UserResolver {
-    users({ em }) {
+    users() {
         return __awaiter(this, void 0, void 0, function* () {
-            const users = yield em.find(User_1.User, {});
-            return users;
+            return yield User_1.User.find();
         });
     }
-    register({ em, req }, input) {
+    register({ req }, input) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (input.username.length < 3) {
-                return {
-                    errors: [
-                        {
-                            field: "username",
-                            message: "The username must be atleast 3 characters long",
-                        },
-                    ],
-                };
-            }
-            if (input.password.length < 3) {
-                return {
-                    errors: [
-                        {
-                            field: "password",
-                            message: "The password must be atleast 3 characters long",
-                        },
-                    ],
-                };
+            const errors = (0, isUsernamePasswordValid_1.isUsernamePasswordValid)(input);
+            if (errors.length > 0) {
+                return { errors };
             }
             const hashedPassword = yield argon2_1.default.hash(input.password);
-            const user = em.create(User_1.User, {
-                username: input.username,
-                password: hashedPassword,
-                email: input.email,
-            });
+            let user;
             try {
-                yield em.persistAndFlush(user);
+                user = yield User_1.User.create({
+                    username: input.username,
+                    password: hashedPassword,
+                    email: input.email,
+                }).save();
+                req.session.userId = user.id;
+                req.session.cookie = new express_session_1.Cookie();
+                return {
+                    user,
+                };
             }
             catch (err) {
                 if (err instanceof core_1.UniqueConstraintViolationException &&
@@ -90,18 +79,19 @@ let UserResolver = class UserResolver {
                     };
                 }
             }
-            req.session.userId = user.id;
-            req.session.cookie = new express_session_1.Cookie();
             return {
-                user,
+                errors: [
+                    {
+                        field: "unknown",
+                        message: "Oops, Something went wrong!",
+                    },
+                ],
             };
         });
     }
-    login({ em, req }, input) {
+    login({ req }, input) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield em.findOne(User_1.User, {
-                username: input.username,
-            });
+            const user = yield User_1.User.findOne({ where: { username: input.username } });
             if (!user) {
                 return {
                     errors: [
@@ -129,12 +119,12 @@ let UserResolver = class UserResolver {
             };
         });
     }
-    me({ em, req }) {
+    me({ req }) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!req.session.userId) {
-                return null;
+                return undefined;
             }
-            return yield em.findOne(User_1.User, { id: req.session.userId });
+            return yield User_1.User.findOne(req.session.userId);
         });
     }
     logout({ req, res }) {
@@ -149,13 +139,13 @@ let UserResolver = class UserResolver {
             }
         }));
     }
-    forgotPassword({ em }, email) {
+    forgotPassword(email) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!(0, isValidEmail_1.isValidEmail)(email)) {
                 console.log("invalid email");
                 return false;
             }
-            const user = yield em.findOne(User_1.User, { email });
+            const user = yield User_1.User.findOne({ where: { email } });
             if (!user) {
                 console.log("invalid user");
                 return true;
@@ -172,16 +162,12 @@ let UserResolver = class UserResolver {
             return true;
         });
     }
-    changePassword({ em, req }, password, token) {
+    changePassword({ req }, password, token) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (password.length < 3) {
+            const errors = (0, isUsernamePasswordValid_1.isPasswordValid)(password);
+            if (errors.length > 0) {
                 return {
-                    errors: [
-                        {
-                            field: "password",
-                            message: "Password must be atleast 3 characters long.",
-                        },
-                    ],
+                    errors,
                 };
             }
             const authToken = yield token_1.Token.findOne({ token: token })
@@ -198,11 +184,10 @@ let UserResolver = class UserResolver {
                 };
             }
             const id = authToken.userId;
-            const user = yield em.findOne(User_1.User, { id });
+            const user = yield User_1.User.findOne(id);
             const hasedNewPassword = yield argon2_1.default.hash(password);
             if (user) {
-                user.password = hasedNewPassword;
-                yield em.persistAndFlush(user);
+                User_1.User.update({ id }, { password: hasedNewPassword });
                 req.session.userId = user.id;
                 req.session.cookie = new express_session_1.Cookie();
                 return { user };
@@ -212,9 +197,9 @@ let UserResolver = class UserResolver {
             }
         });
     }
-    resetPassword({ em, req }, currentPassword, newPassword) {
+    resetPassword({ req }, currentPassword, newPassword) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield em.findOne(User_1.User, { id: req.session.userId });
+            const user = yield User_1.User.findOne(req.session.userId);
             if (!user) {
                 return {
                     errors: [
@@ -226,6 +211,7 @@ let UserResolver = class UserResolver {
                 };
             }
             if (!(yield argon2_1.default.verify(user.password, currentPassword))) {
+                console.log("error!");
                 return {
                     errors: [
                         {
@@ -235,19 +221,17 @@ let UserResolver = class UserResolver {
                     ],
                 };
             }
-            if (newPassword.length < 3) {
+            const errors = (0, isUsernamePasswordValid_1.isPasswordValid)(newPassword);
+            if (errors.length > 0) {
+                console.log("is it here?");
+                console.log(errors);
                 return {
-                    errors: [
-                        {
-                            field: "newPassword",
-                            message: "The password must be atleast 3 characters long!",
-                        },
-                    ],
+                    errors,
                 };
             }
             const hashedPassword = yield argon2_1.default.hash(newPassword);
-            user.password = hashedPassword;
-            em.persistAndFlush(user);
+            const updateResult = yield User_1.User.update({ id: req.session.userId }, { password: hashedPassword });
+            console.log(updateResult);
             return {
                 status: true,
             };
@@ -256,9 +240,8 @@ let UserResolver = class UserResolver {
 };
 __decorate([
     (0, type_graphql_1.Query)(() => [User_1.User]),
-    __param(0, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "users", null);
 __decorate([
@@ -293,10 +276,9 @@ __decorate([
 ], UserResolver.prototype, "logout", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
-    __param(0, (0, type_graphql_1.Ctx)()),
-    __param(1, (0, type_graphql_1.Arg)("email")),
+    __param(0, (0, type_graphql_1.Arg)("email")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "forgotPassword", null);
 __decorate([
