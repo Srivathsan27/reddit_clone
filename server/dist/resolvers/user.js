@@ -29,7 +29,7 @@ const type_graphql_1 = require("type-graphql");
 const User_1 = require("../entities/User");
 const userPassInput_1 = require("../InputTypes/userPassInput");
 const argon2_1 = __importDefault(require("argon2"));
-const core_1 = require("@mikro-orm/core");
+// import {  } from 'typeorm'
 const express_session_1 = require("express-session");
 const consts_1 = require("../constants/consts");
 const sendEmail_1 = require("../utils/sendEmail");
@@ -40,6 +40,7 @@ const isValidEmail_1 = require("../utils/isValidEmail");
 const UserResponse_1 = require("../ObjectTypes/UserResponse");
 const BooleanResponse_1 = require("../ObjectTypes/BooleanResponse");
 const isUsernamePasswordValid_1 = require("../utils/isUsernamePasswordValid");
+const typeorm_1 = require("typeorm");
 let UserResolver = class UserResolver {
     users() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -67,8 +68,8 @@ let UserResolver = class UserResolver {
                 };
             }
             catch (err) {
-                if (err instanceof core_1.UniqueConstraintViolationException &&
-                    err.code === "23505") {
+                if (err instanceof typeorm_1.QueryFailedError &&
+                    err.message.includes("duplicate key value")) {
                     return {
                         errors: [
                             {
