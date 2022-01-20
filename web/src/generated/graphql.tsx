@@ -15,6 +15,12 @@ export type Scalars = {
   Float: number;
 };
 
+export type BooleanResponse = {
+  __typename?: 'BooleanResponse';
+  errors?: Maybe<Array<FieldError>>;
+  status?: Maybe<Scalars['Boolean']>;
+};
+
 export type FieldError = {
   __typename?: 'FieldError';
   field: Scalars['String'];
@@ -30,6 +36,7 @@ export type Mutation = {
   logout: Scalars['Boolean'];
   newPost: PostResponse;
   register: UserResponse;
+  resetPassword: BooleanResponse;
   updatePost: PostResponse;
 };
 
@@ -62,6 +69,12 @@ export type MutationNewPostArgs = {
 
 export type MutationRegisterArgs = {
   input: UserPassInput;
+};
+
+
+export type MutationResetPasswordArgs = {
+  current: Scalars['String'];
+  new: Scalars['String'];
 };
 
 
@@ -176,6 +189,14 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'UserResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined, user?: { __typename?: 'User', id: number, createdAt: string, updatedAt: string, username: string, email: string } | null | undefined } };
 
+export type ResetPasswordMutationVariables = Exact<{
+  current: Scalars['String'];
+  new: Scalars['String'];
+}>;
+
+
+export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'BooleanResponse', status?: boolean | null | undefined, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -263,6 +284,21 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const ResetPasswordDocument = gql`
+    mutation ResetPassword($current: String!, $new: String!) {
+  resetPassword(current: $current, new: $new) {
+    status
+    errors {
+      field
+      message
+    }
+  }
+}
+    `;
+
+export function useResetPasswordMutation() {
+  return Urql.useMutation<ResetPasswordMutation, ResetPasswordMutationVariables>(ResetPasswordDocument);
 };
 export const MeDocument = gql`
     query Me {

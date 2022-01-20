@@ -27,6 +27,11 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
     body = (
       <Flex ml="auto" gap={5} alignItems="center" justifyContent="space-evenly">
         <Text>Hello {username} </Text>
+        <NextLink href="/reset-password">
+          <Button variant="outline" colorScheme="black" isLoading={fetching}>
+            Reset
+          </Button>
+        </NextLink>
         <Button
           onClick={logoutHandler}
           variant="outline"

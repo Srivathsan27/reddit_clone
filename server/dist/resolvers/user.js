@@ -37,32 +37,8 @@ const uuid_1 = require("uuid");
 const token_1 = require("../store/PasswordChange/token");
 const mongoose_1 = require("mongoose");
 const isValidEmail_1 = require("../utils/isValidEmail");
-let FieldError = class FieldError {
-};
-__decorate([
-    (0, type_graphql_1.Field)(),
-    __metadata("design:type", String)
-], FieldError.prototype, "field", void 0);
-__decorate([
-    (0, type_graphql_1.Field)(),
-    __metadata("design:type", String)
-], FieldError.prototype, "message", void 0);
-FieldError = __decorate([
-    (0, type_graphql_1.ObjectType)()
-], FieldError);
-let UserResponse = class UserResponse {
-};
-__decorate([
-    (0, type_graphql_1.Field)(() => [FieldError], { nullable: true }),
-    __metadata("design:type", Array)
-], UserResponse.prototype, "errors", void 0);
-__decorate([
-    (0, type_graphql_1.Field)(() => User_1.User, { nullable: true }),
-    __metadata("design:type", User_1.User)
-], UserResponse.prototype, "user", void 0);
-UserResponse = __decorate([
-    (0, type_graphql_1.ObjectType)()
-], UserResponse);
+const UserResponse_1 = require("./ObjectTypes/UserResponse");
+const BooleanResponse_1 = require("./ObjectTypes/BooleanResponse");
 let UserResolver = class UserResolver {
     users({ em }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -236,6 +212,47 @@ let UserResolver = class UserResolver {
             }
         });
     }
+    resetPassword({ em, req }, currentPassword, newPassword) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield em.findOne(User_1.User, { id: req.session.userId });
+            if (!user) {
+                return {
+                    errors: [
+                        {
+                            field: "user",
+                            message: "For some reason, we couldn't find your account! please contact us if you think this is a mistake!",
+                        },
+                    ],
+                };
+            }
+            if (!(yield argon2_1.default.verify(user.password, currentPassword))) {
+                return {
+                    errors: [
+                        {
+                            field: "currentPassword",
+                            message: "Incorrect Password!",
+                        },
+                    ],
+                };
+            }
+            if (newPassword.length < 3) {
+                return {
+                    errors: [
+                        {
+                            field: "newPassword",
+                            message: "The password must be atleast 3 characters long!",
+                        },
+                    ],
+                };
+            }
+            const hashedPassword = yield argon2_1.default.hash(newPassword);
+            user.password = hashedPassword;
+            em.persistAndFlush(user);
+            return {
+                status: true,
+            };
+        });
+    }
 };
 __decorate([
     (0, type_graphql_1.Query)(() => [User_1.User]),
@@ -245,7 +262,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "users", null);
 __decorate([
-    (0, type_graphql_1.Mutation)(() => UserResponse),
+    (0, type_graphql_1.Mutation)(() => UserResponse_1.UserResponse),
     __param(0, (0, type_graphql_1.Ctx)()),
     __param(1, (0, type_graphql_1.Arg)("input", () => userPassInput_1.UserPassInput)),
     __metadata("design:type", Function),
@@ -253,7 +270,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "register", null);
 __decorate([
-    (0, type_graphql_1.Mutation)(() => UserResponse),
+    (0, type_graphql_1.Mutation)(() => UserResponse_1.UserResponse),
     __param(0, (0, type_graphql_1.Ctx)()),
     __param(1, (0, type_graphql_1.Arg)("input", () => userPassInput_1.UserPassInput)),
     __metadata("design:type", Function),
@@ -283,7 +300,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "forgotPassword", null);
 __decorate([
-    (0, type_graphql_1.Mutation)(() => UserResponse, { nullable: true }),
+    (0, type_graphql_1.Mutation)(() => UserResponse_1.UserResponse, { nullable: true }),
     __param(0, (0, type_graphql_1.Ctx)()),
     __param(1, (0, type_graphql_1.Arg)("password")),
     __param(2, (0, type_graphql_1.Arg)("token")),
@@ -291,6 +308,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "changePassword", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => BooleanResponse_1.BooleanResponse),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(1, (0, type_graphql_1.Arg)("current")),
+    __param(2, (0, type_graphql_1.Arg)("new")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "resetPassword", null);
 UserResolver = __decorate([
     (0, type_graphql_1.Resolver)()
 ], UserResolver);
