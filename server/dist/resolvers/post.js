@@ -28,10 +28,23 @@ const PostInput_1 = require("../InputTypes/PostInput");
 const PostResponse_1 = require("../ObjectTypes/PostResponse");
 const PostsResponse_1 = require("../ObjectTypes/PostsResponse");
 const BooleanResponse_1 = require("../ObjectTypes/BooleanResponse");
+const isAuth_1 = require("../middleware/isAuth");
+const typeorm_1 = require("typeorm");
 let PostResolver = class PostResolver {
-    posts() {
+    posts(limit, cursor) {
         return __awaiter(this, void 0, void 0, function* () {
-            const posts = yield Post_1.Post.find();
+            let cur = new Date();
+            if (cursor) {
+                cur = new Date(+cursor);
+            }
+            const realLimit = Math.min(50, limit);
+            const posts = yield (0, typeorm_1.getConnection)()
+                .getRepository(Post_1.Post)
+                .createQueryBuilder("p")
+                .take(realLimit)
+                .where('"createdAt" < :cursor', { cursor: cur })
+                .orderBy('"createdAt"', "DESC")
+                .getMany();
             if (posts.length === 0) {
                 return {
                     errors: {
@@ -62,13 +75,14 @@ let PostResolver = class PostResolver {
             };
         });
     }
-    newPost(input) {
+    newPost({ req }, input) {
         return __awaiter(this, void 0, void 0, function* () {
             let post;
             try {
                 post = yield Post_1.Post.create({
                     title: input.title,
                     content: input.content,
+                    creatorId: req.session.userId,
                 }).save();
             }
             catch (error) {
@@ -99,6 +113,27 @@ let PostResolver = class PostResolver {
             yield Post_1.Post.update({ id }, { title: input.title, content: input.content });
             return {
                 post: post,
+            };
+        });
+    }
+    deleteAllPosts() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield Post_1.Post.delete({});
+            }
+            catch (err) {
+                console.log(err);
+                return {
+                    errors: [
+                        {
+                            field: "dg",
+                            message: "gd",
+                        },
+                    ],
+                };
+            }
+            return {
+                status: true,
             };
         });
     }
@@ -136,8 +171,10 @@ let PostResolver = class PostResolver {
 };
 __decorate([
     (0, type_graphql_1.Query)(() => PostsResponse_1.PostsResponse),
+    __param(0, (0, type_graphql_1.Arg)("limit")),
+    __param(1, (0, type_graphql_1.Arg)("cursor", () => String, { nullable: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number, String]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "posts", null);
 __decorate([
@@ -149,9 +186,11 @@ __decorate([
 ], PostResolver.prototype, "post", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => PostResponse_1.PostResponse),
-    __param(0, (0, type_graphql_1.Arg)("input", () => PostInput_1.PostInput)),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(1, (0, type_graphql_1.Arg)("input", () => PostInput_1.PostInput)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [PostInput_1.PostInput]),
+    __metadata("design:paramtypes", [Object, PostInput_1.PostInput]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "newPost", null);
 __decorate([
@@ -162,6 +201,12 @@ __decorate([
     __metadata("design:paramtypes", [Number, PostInput_1.PostInput]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "updatePost", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => BooleanResponse_1.BooleanResponse),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "deleteAllPosts", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => BooleanResponse_1.BooleanResponse),
     __param(0, (0, type_graphql_1.Arg)("id")),
