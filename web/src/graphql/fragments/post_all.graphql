@@ -1,0 +1,8 @@
+fragment post_all on Post {
+  id
+  createdAt
+  updatedAt
+  title
+  content
+  creatorId
+}

@@ -1,9 +1,10 @@
-import { Flex, Spinner } from "@chakra-ui/react";
+import { Button, Flex, Spinner, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
-import { title } from "process";
+import { useEffect, useState } from "react";
 import { createURQLClient } from "../cache/client";
 import Navbar from "../components/Nav/Navbar";
-import { useMeQuery, usePostsQuery } from "../generated/graphql";
+import PostList from "../components/post/postList";
+import { Post, useMeQuery, usePostsQuery } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
 
 const Index = () => {
@@ -11,8 +12,14 @@ const Index = () => {
     pause: isServer(),
   });
 
-  const [{ data: postsData, fetching: loadingPosts }] = usePostsQuery();
-
+  const [variables, setvariables] = useState({
+    limit: 10,
+    cursor: undefined as undefined | string,
+  });
+  const [{ data: postsData, fetching: loadingPosts }] = usePostsQuery({
+    variables: variables,
+  });
+  console.log(postsData);
 
   let body: JSX.Element = <div>Hello World</div>;
 
@@ -24,24 +31,22 @@ const Index = () => {
         <Spinner size="xl" />
       </Flex>
     );
-  } else if (postsData?.posts.errors) {
-    body = <div>Oops, Something went wrong!</div>;
-  } else if (postsData?.posts.posts === []) {
-    body = <div>No Posts Found</div>;
+  } else if (!loadingPosts && !postsData?.posts.posts) {
+    body = <Text>Oops, Something went Wrong!</Text>;
   } else {
-    const posts = postsData?.posts?.posts?.map((post) => {
-      return { title: post.title, content: post.content, id: post.id };
-    });
+    const posts = postsData?.posts.posts as Post[];
+
     body = (
-      <ul>
-        {posts?.map((post) => {
-          return (
-            <li key={post.id}>
-              Title: {post.title} Content: {post.content}
-            </li>
-          );
-        })}
-      </ul>
+      <PostList
+        posts={posts}
+        onClick={() => {
+          setvariables({
+            ...variables,
+            cursor: posts[posts.length - 1].createdAt,
+          });
+        }}
+        loadMore={postsData?.posts.hasMorePosts as boolean}
+      />
     );
   }
   if (fetching || !data?.me) {

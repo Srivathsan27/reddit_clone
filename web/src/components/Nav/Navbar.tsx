@@ -10,8 +10,8 @@ interface NavbarProps {
 }
 
 const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
-  let body: any = null;
-
+  let bodyRight: any = null;
+  let bodyLeft: any = null;
   const router = useRouter();
   const [{ fetching }, logout] = useLogoutMutation();
 
@@ -24,7 +24,16 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
   };
 
   if (isLoggedIn) {
-    body = (
+    bodyLeft = (
+      <Flex>
+        <NextLink href="/create-post">
+          <Button variant="outline" colorScheme="black" isLoading={fetching}>
+            Post +
+          </Button>
+        </NextLink>
+      </Flex>
+    );
+    bodyRight = (
       <Flex ml="auto" gap={5} alignItems="center" justifyContent="space-evenly">
         <Text>Hello {username} </Text>
         <NextLink href="/reset-password">
@@ -43,7 +52,7 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
       </Flex>
     );
   } else {
-    body = (
+    bodyRight = (
       <Flex ml="auto" gap={5}>
         <NextLink href="/login">
           <Link>Login</Link>
@@ -56,8 +65,17 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
   }
 
   return (
-    <Flex padding={8} bgColor="green.300">
-      {body}
+    <Flex
+      padding={8}
+      bgColor="green.300"
+      alignItems="center"
+      justifyContent="space-between"
+      position={"sticky"}
+      top={0}
+      zIndex={10}
+    >
+      {bodyLeft}
+      {bodyRight}
     </Flex>
   );
 };

@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PostsResponse = void 0;
 const type_graphql_1 = require("type-graphql");
 const Post_1 = require("../entities/Post");
-const PostError_1 = require("./PostError");
 let PostsResponse = class PostsResponse {
 };
 __decorate([
@@ -20,13 +19,9 @@ __decorate([
     __metadata("design:type", Array)
 ], PostsResponse.prototype, "posts", void 0);
 __decorate([
-    (0, type_graphql_1.Field)({ nullable: true }),
-    __metadata("design:type", Number)
-], PostsResponse.prototype, "numberOfPosts", void 0);
-__decorate([
-    (0, type_graphql_1.Field)({ nullable: true }),
-    __metadata("design:type", PostError_1.PostError)
-], PostsResponse.prototype, "errors", void 0);
+    (0, type_graphql_1.Field)(),
+    __metadata("design:type", Boolean)
+], PostsResponse.prototype, "hasMorePosts", void 0);
 PostsResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], PostsResponse);

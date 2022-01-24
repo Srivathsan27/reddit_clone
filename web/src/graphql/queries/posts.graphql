@@ -1,16 +1,9 @@
-query Posts {
-  posts {
+query Posts($limit: Float!, $cursor: String) {
+  posts(limit: $limit, cursor: $cursor) {
     posts {
-      id
-      createdAt
-      updatedAt
-      title
-      content
+      ...post_all
     }
-    numberOfPosts
-    errors {
-      field
-      message
-    }
+
+    hasMorePosts
   }
 }

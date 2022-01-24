@@ -10,7 +10,7 @@ import { withUrqlClient } from "next-urql";
 import { createURQLClient } from "../../cache/client";
 import { useState } from "react";
 
-const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
+const ChangePassword: React.FC = () => {
   const [, changePassword] = useChangePasswordMutation();
   const router = useRouter();
 
@@ -33,14 +33,17 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
             });
           } else {
             const response = await changePassword({
-              token,
+              token:
+                typeof router.query.token === "string"
+                  ? router.query.token
+                  : "",
               password,
             });
             if (!response.data?.changePassword) {
               setBody(<Text>Oops, Something went wrong!</Text>);
             } else if (response.data.changePassword.errors) {
               const errMap = toErrorMap(response.data.changePassword.errors);
-              if (!errMap[token]) setErrors(errMap);
+              if (!errMap["token"]) setErrors(errMap);
               else {
                 setBody(<Text>Token Has Expired!</Text>);
               }
@@ -77,10 +80,6 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
       {body}
     </Wrapper>
   );
-};
-
-ChangePassword.getInitialProps = ({ query }) => {
-  return { token: query.token as string };
 };
 
 export default withUrqlClient(createURQLClient)(ChangePassword);

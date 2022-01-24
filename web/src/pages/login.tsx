@@ -9,14 +9,15 @@ import Wrapper from "../components/UI/Wrapper";
 import {
   useForgotPasswordMutation,
   useLoginMutation,
+  useMeQuery,
 } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 
 interface LoginProps {}
 
 const Login: FC<LoginProps> = ({}) => {
-  const [mysteryProp, login] = useLoginMutation();
-  console.log(mysteryProp);
+  const [_, login] = useLoginMutation();
+
   const router = useRouter();
 
   const forgotPasswordHandler = () => {
@@ -48,7 +49,9 @@ const Login: FC<LoginProps> = ({}) => {
             if (resposnse.data?.login.errors) {
               setErrors(toErrorMap(resposnse.data.login.errors));
             } else {
-              router.push("/");
+              const path: string =
+                typeof router.query.next === "string" ? router.query.next : "/";
+              router.replace(path);
             }
           }
         }}

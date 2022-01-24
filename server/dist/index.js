@@ -26,17 +26,19 @@ const post_1 = require("./resolvers/post");
 const typeorm_1 = require("typeorm");
 const User_1 = require("./entities/User");
 const Post_1 = require("./entities/Post");
+const path_1 = __importDefault(require("path"));
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
     const mongoStore = (0, connect_mongodb_session_1.default)(express_session_1.default);
     // sendEmail("bob@bob.com", "this is a test email", "Test");
-    const connection = (0, typeorm_1.createConnection)({
+    const connection = yield (0, typeorm_1.createConnection)({
         type: "postgres",
         database: "fstutorial2",
         username: process.env.POSTGRES_USER,
         password: process.env.POSTGRES_PASS,
         logging: true,
         synchronize: true,
+        migrations: [path_1.default.join(__dirname, "./migrations/*")],
         entities: [User_1.User, Post_1.Post],
     });
     // await Post.delete({});

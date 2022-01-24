@@ -38,24 +38,17 @@ let PostResolver = class PostResolver {
                 cur = new Date(+cursor);
             }
             const realLimit = Math.min(50, limit);
+            const testLimit = realLimit + 1;
             const posts = yield (0, typeorm_1.getConnection)()
                 .getRepository(Post_1.Post)
                 .createQueryBuilder("p")
-                .take(realLimit)
+                .take(testLimit)
                 .where('"createdAt" < :cursor', { cursor: cur })
                 .orderBy('"createdAt"', "DESC")
                 .getMany();
-            if (posts.length === 0) {
-                return {
-                    errors: {
-                        field: "Posts",
-                        message: "No Posts Found!",
-                    },
-                };
-            }
             return {
-                posts,
-                numberOfPosts: posts.length,
+                hasMorePosts: posts.length === testLimit,
+                posts: posts.slice(0, realLimit),
             };
         });
     }
