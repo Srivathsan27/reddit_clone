@@ -13,6 +13,7 @@ exports.Post = void 0;
 const typeorm_1 = require("typeorm");
 const type_graphql_1 = require("type-graphql");
 const User_1 = require("./User");
+const Hit_1 = require("./Hit");
 let Post = class Post extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -42,13 +43,23 @@ __decorate([
 ], Post.prototype, "content", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: "int" }),
     __metadata("design:type", Number)
 ], Post.prototype, "creatorId", void 0);
 __decorate([
+    (0, type_graphql_1.Field)(() => User_1.User),
     (0, typeorm_1.ManyToOne)(() => User_1.User, (user) => user.posts),
     __metadata("design:type", User_1.User)
 ], Post.prototype, "creator", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    (0, typeorm_1.Column)({ type: "int", default: 0 }),
+    __metadata("design:type", Number)
+], Post.prototype, "numberOfHits", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => Hit_1.Hit, (hit) => hit.post),
+    __metadata("design:type", Array)
+], Post.prototype, "hits", void 0);
 Post = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

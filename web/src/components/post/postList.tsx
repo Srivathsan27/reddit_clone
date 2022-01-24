@@ -23,7 +23,10 @@ const PostList: FC<PostListProps> = ({ onClick, posts, loadMore }) => {
             <PostItem
               title={post.title}
               content={post.content}
+              creator={post.creator.username}
+              uploadedAt={new Date(+post.createdAt)}
               key={post.id}
+              hits={post.numberOfHits}
             ></PostItem>
           ))}
       </VStack>

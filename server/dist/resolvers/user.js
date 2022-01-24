@@ -42,6 +42,14 @@ const BooleanResponse_1 = require("../ObjectTypes/BooleanResponse");
 const isUsernamePasswordValid_1 = require("../utils/isUsernamePasswordValid");
 const typeorm_1 = require("typeorm");
 let UserResolver = class UserResolver {
+    email(user, { req }) {
+        if (req.session.userId === user.id) {
+            return user.email;
+        }
+        else {
+            return "";
+        }
+    }
     users() {
         return __awaiter(this, void 0, void 0, function* () {
             return yield User_1.User.find();
@@ -240,6 +248,14 @@ let UserResolver = class UserResolver {
     }
 };
 __decorate([
+    (0, type_graphql_1.FieldResolver)(),
+    __param(0, (0, type_graphql_1.Root)()),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [User_1.User, Object]),
+    __metadata("design:returntype", void 0)
+], UserResolver.prototype, "email", null);
+__decorate([
     (0, type_graphql_1.Query)(() => [User_1.User]),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
@@ -301,6 +317,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "resetPassword", null);
 UserResolver = __decorate([
-    (0, type_graphql_1.Resolver)()
+    (0, type_graphql_1.Resolver)(() => User_1.User)
 ], UserResolver);
 exports.UserResolver = UserResolver;

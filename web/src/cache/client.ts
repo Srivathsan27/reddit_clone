@@ -111,13 +111,6 @@ export const createURQLClient = (ssrExchange: any) => ({
             }
 
             const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
-            // console.log(
-            //   "my comment: ",
-            //   cache.resolve(
-            //     cache.resolve(entityKey, fieldKey) as string,
-            //     "posts"
-            //   )
-            // );
 
             const isInCache = cache.resolve(
               cache.resolve(entityKey, fieldKey) as string,
@@ -127,8 +120,6 @@ export const createURQLClient = (ssrExchange: any) => ({
             const results: string[] = [];
 
             let hasMorePosts: boolean = true;
-            console.log(entityKey);
-            console.log(fieldKey);
             fieldInfos.forEach((fi) => {
               const data = cache.resolve(
                 cache.resolve(entityKey, fi.fieldKey) as string,
@@ -149,7 +140,6 @@ export const createURQLClient = (ssrExchange: any) => ({
               posts: results,
               hasMorePosts,
             };
-            // console.log(resp);
           },
         },
       },

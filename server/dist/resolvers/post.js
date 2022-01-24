@@ -31,6 +31,23 @@ const BooleanResponse_1 = require("../ObjectTypes/BooleanResponse");
 const isAuth_1 = require("../middleware/isAuth");
 const typeorm_1 = require("typeorm");
 let PostResolver = class PostResolver {
+    hitPost({ req }, postId, hitValue) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const value = [0, 1, -1].includes(hitValue) ? hitValue : 0;
+            const { userId } = req.session;
+            yield (0, typeorm_1.getConnection)().query(`
+    start transaction;
+
+    insert into hit("userId", "postId", "hitValue") values (${userId}, ${postId}, ${value});
+    
+    update post set "numberOfHits" = "numberOfHits" + ${value} where id = ${postId};
+
+    commit;
+
+    `);
+            return true;
+        });
+    }
     posts(limit, cursor) {
         return __awaiter(this, void 0, void 0, function* () {
             let cur = new Date();
@@ -39,13 +56,22 @@ let PostResolver = class PostResolver {
             }
             const realLimit = Math.min(50, limit);
             const testLimit = realLimit + 1;
-            const posts = yield (0, typeorm_1.getConnection)()
-                .getRepository(Post_1.Post)
-                .createQueryBuilder("p")
-                .take(testLimit)
-                .where('"createdAt" < :cursor', { cursor: cur })
-                .orderBy('"createdAt"', "DESC")
-                .getMany();
+            const posts = yield (0, typeorm_1.getConnection)().query(`
+      select 
+        p.*, 
+        json_build_object(
+          'id', u.id,
+          'username', u.username,
+          'email', u.email,
+          'createdAt', u."createdAt", 
+          'updatedAt', u."updatedAt" 
+        ) as creator
+      from post p
+      inner join public.user u  on u.id = p."creatorId"
+      where p."createdAt" < $1
+      order by p."createdAt" DESC
+      limit $2
+    `, [cur, testLimit]);
             return {
                 hasMorePosts: posts.length === testLimit,
                 posts: posts.slice(0, realLimit),
@@ -162,6 +188,16 @@ let PostResolver = class PostResolver {
         });
     }
 };
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(1, (0, type_graphql_1.Arg)("post", () => type_graphql_1.Int)),
+    __param(2, (0, type_graphql_1.Arg)("value", () => type_graphql_1.Int)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Number]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "hitPost", null);
 __decorate([
     (0, type_graphql_1.Query)(() => PostsResponse_1.PostsResponse),
     __param(0, (0, type_graphql_1.Arg)("limit")),

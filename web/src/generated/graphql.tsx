@@ -33,6 +33,7 @@ export type Mutation = {
   delete: BooleanResponse;
   deleteAllPosts: BooleanResponse;
   forgotPassword: Scalars['Boolean'];
+  hitPost: Scalars['Boolean'];
   login: UserResponse;
   logout: Scalars['Boolean'];
   newPost: PostResponse;
@@ -55,6 +56,12 @@ export type MutationDeleteArgs = {
 
 export type MutationForgotPasswordArgs = {
   email: Scalars['String'];
+};
+
+
+export type MutationHitPostArgs = {
+  post: Scalars['Int'];
+  value: Scalars['Int'];
 };
 
 
@@ -88,8 +95,10 @@ export type Post = {
   __typename?: 'Post';
   content: Scalars['String'];
   createdAt: Scalars['String'];
+  creator: User;
   creatorId: Scalars['Float'];
   id: Scalars['Float'];
+  numberOfHits: Scalars['Int'];
   title: Scalars['String'];
   updatedAt: Scalars['String'];
 };
@@ -140,7 +149,7 @@ export type User = {
   __typename?: 'User';
   createdAt: Scalars['String'];
   email: Scalars['String'];
-  id: Scalars['Float'];
+  id: Scalars['Int'];
   updatedAt: Scalars['String'];
   username: Scalars['String'];
 };
@@ -157,7 +166,7 @@ export type UserResponse = {
   user?: Maybe<User>;
 };
 
-export type Post_AllFragment = { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, content: string, creatorId: number };
+export type Post_AllFragment = { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, content: string, numberOfHits: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } };
 
 export type User_AllFragment = { __typename?: 'User', id: number, createdAt: string, updatedAt: string, username: string, email: string };
 
@@ -174,7 +183,7 @@ export type CreateNewPostMutationVariables = Exact<{
 }>;
 
 
-export type CreateNewPostMutation = { __typename?: 'Mutation', newPost: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, content: string, creatorId: number } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
+export type CreateNewPostMutation = { __typename?: 'Mutation', newPost: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, content: string, numberOfHits: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
 
 export type ForgotPasswordMutationVariables = Exact<{
   email: Scalars['String'];
@@ -224,7 +233,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, content: string, creatorId: number }> | null | undefined } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, content: string, numberOfHits: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
 
 export const Post_AllFragmentDoc = gql`
     fragment post_all on Post {
@@ -233,7 +242,12 @@ export const Post_AllFragmentDoc = gql`
   updatedAt
   title
   content
+  numberOfHits
   creatorId
+  creator {
+    id
+    username
+  }
 }
     `;
 export const User_AllFragmentDoc = gql`

@@ -4,5 +4,10 @@ fragment post_all on Post {
   updatedAt
   title
   content
+  numberOfHits
   creatorId
+  creator {
+    id
+    username
+  }
 }
