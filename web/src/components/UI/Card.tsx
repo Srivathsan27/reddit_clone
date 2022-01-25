@@ -13,7 +13,9 @@ const Card: FC<CardProps> = ({ children }) => {
       margin={"auto"}
       boxShadow="0px 4px 8px 0px rgba(3,15,2,0.3);"
       borderRadius={5}
-      borderTop="5px solid teal"
+      borderLeft="5px solid teal"
+      borderRight="5px solid teal"
+      // borderTop="5px solid teal"
     >
       {children}
     </Box>

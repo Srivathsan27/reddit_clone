@@ -21,19 +21,21 @@ const PostList: FC<PostListProps> = ({ onClick, posts, loadMore }) => {
         {posts &&
           posts.map((post) => (
             <PostItem
+              id={post.id}
               title={post.title}
               content={post.content}
               creator={post.creator.username}
               uploadedAt={new Date(+post.createdAt)}
               key={post.id}
               hits={post.numberOfHits}
+              hitStatus={post.hitStatus as number}
             ></PostItem>
           ))}
       </VStack>
       {
         <Flex mt={5} justifyContent={"center"} mb={10}>
           {loadMore && (
-            <Button colorScheme="green" onClick={onClick}>
+            <Button colorScheme="linkedin" onClick={onClick}>
               Load More
             </Button>
           )}

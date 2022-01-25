@@ -1,8 +1,25 @@
-import { ChakraProvider, ColorModeProvider } from "@chakra-ui/react";
+import { Box, ChakraProvider, ColorModeProvider } from "@chakra-ui/react";
+import { withUrqlClient } from "next-urql";
+import { createURQLClient } from "../cache/client";
+import Navbar from "../components/Nav/Navbar";
+import { useMeQuery } from "../generated/graphql";
 
 import theme from "../theme";
+import { isServer } from "../utils/isServer";
 
 function MyApp({ Component, pageProps }) {
+  const [{ data, fetching }] = useMeQuery({
+    pause: isServer(),
+  });
+
+  let nav: JSX.Element = <></>;
+
+  if (fetching || !data?.me) {
+    nav = <Navbar />;
+  } else {
+    nav = <Navbar isLoggedIn={true} username={data.me.username} />;
+  }
+
   return (
     <ChakraProvider resetCSS theme={theme}>
       <ColorModeProvider
@@ -10,10 +27,16 @@ function MyApp({ Component, pageProps }) {
           useSystemColorMode: true,
         }}
       >
-        <Component {...pageProps} />
+        {nav}
+        <Box
+          bg="linear-gradient(to right bottom, #1A2746, #171F3B, #171D3A, #171A36, #131330)"
+          minH="100vh"
+        >
+          <Component {...pageProps} />
+        </Box>
       </ColorModeProvider>
     </ChakraProvider>
   );
 }
 
-export default MyApp;
+export default withUrqlClient(createURQLClient)(MyApp);

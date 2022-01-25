@@ -1,9 +1,9 @@
 import { Box } from "@chakra-ui/react";
-import { FC } from "react";
+import { FC, HtmlHTMLAttributes } from "react";
 
-interface WrapperProps {
+type WrapperProps = {
   type?: "small" | "regular" | "medium";
-}
+};
 
 const Wrapper: FC<WrapperProps> = ({ children, type, ..._ }) => {
   let width: string;
@@ -29,7 +29,7 @@ const Wrapper: FC<WrapperProps> = ({ children, type, ..._ }) => {
   }
 
   return (
-    <Box mt={8} mx="auto" width={width}>
+    <Box m="auto" maxW={width} width={"100%"}>
       {children}
     </Box>
   );

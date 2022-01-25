@@ -5,6 +5,7 @@ fragment post_all on Post {
   title
   content
   numberOfHits
+  hitStatus
   creatorId
   creator {
     id

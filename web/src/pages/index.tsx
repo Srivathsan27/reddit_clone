@@ -8,10 +8,6 @@ import { Post, useMeQuery, usePostsQuery } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
 
 const Index = () => {
-  const [{ data, fetching }] = useMeQuery({
-    pause: isServer(),
-  });
-
   const [variables, setvariables] = useState({
     limit: 10,
     cursor: undefined as undefined | string,
@@ -36,22 +32,22 @@ const Index = () => {
     const posts = postsData?.posts.posts as Post[];
 
     body = (
-      <PostList
-        posts={posts}
-        onClick={() => {
-          setvariables({
-            ...variables,
-            cursor: posts[posts.length - 1].createdAt,
-          });
-        }}
-        loadMore={postsData?.posts.hasMorePosts as boolean}
-      />
+      <Flex
+        bg="linear-gradient(to right bottom, #1A2746, #171F3B, #171D3A, #171A36, #131330)"
+        pt="5%"
+      >
+        <PostList
+          posts={posts}
+          onClick={() => {
+            setvariables({
+              ...variables,
+              cursor: posts[posts.length - 1].createdAt,
+            });
+          }}
+          loadMore={postsData?.posts.hasMorePosts as boolean}
+        />
+      </Flex>
     );
-  }
-  if (fetching || !data?.me) {
-    nav = <Navbar />;
-  } else {
-    nav = <Navbar isLoggedIn={true} username={data.me.username} />;
   }
 
   return (

@@ -32,7 +32,7 @@ __decorate([
     __metadata("design:type", Post_1.Post)
 ], Hit.prototype, "post", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "int" }),
+    (0, typeorm_1.Column)({ type: "int", default: 0 }),
     __metadata("design:type", Number)
 ], Hit.prototype, "hitValue", void 0);
 Hit = __decorate([

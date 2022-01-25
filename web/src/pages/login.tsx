@@ -1,104 +1,39 @@
-import { Button, Flex } from "@chakra-ui/react";
-import { Form, Formik } from "formik";
+import { Box, Flex, Heading, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
-import { useRouter } from "next/router";
 import { FC } from "react";
 import { createURQLClient } from "../cache/client";
-import FormInput from "../components/FormInput";
+import LoginForm from "../components/login/LoginForm";
+import Navbar from "../components/Nav/Navbar";
 import Wrapper from "../components/UI/Wrapper";
-import {
-  useForgotPasswordMutation,
-  useLoginMutation,
-  useMeQuery,
-} from "../generated/graphql";
-import { toErrorMap } from "../utils/toErrorMap";
 
 interface LoginProps {}
 
 const Login: FC<LoginProps> = ({}) => {
-  const [_, login] = useLoginMutation();
-
-  const router = useRouter();
-
-  const forgotPasswordHandler = () => {
-    router.push("/forgot-password");
-  };
-
   return (
-    <Wrapper type="small">
-      <Formik
-        initialValues={{
-          username: "",
-          password: "",
-        }}
-        onSubmit={async (values, { setErrors }) => {
-          if (values.username.trim() === "" || values.password.trim() === "") {
-            setErrors({
-              username:
-                values.username.trim() === ""
-                  ? "This Field must not be empty!"
-                  : undefined,
-              password:
-                values.password.trim() === ""
-                  ? "This Field must not be empty!"
-                  : undefined,
-            });
-          } else {
-            const resposnse = await login(values);
-
-            if (resposnse.data?.login.errors) {
-              setErrors(toErrorMap(resposnse.data.login.errors));
-            } else {
-              const path: string =
-                typeof router.query.next === "string" ? router.query.next : "/";
-              router.replace(path);
-            }
-          }
-        }}
-      >
-        {({ isSubmitting }) => {
-          return (
-            <Form>
-              <FormInput name="username" label="Username" />
-              <FormInput
-                name="password"
-                label="Password"
-                type="password"
-                boxProps={{
-                  mt: 4,
-                }}
-              />
-              <Flex
-                justifyContent="space-between"
-                alignItems="center"
-                boxSizing="border-box"
-                padding={2}
-              >
-                <Button
-                  mt={4}
-                  type="button"
-                  variant="link"
-                  colorScheme="green"
-                  onClick={forgotPasswordHandler}
-                >
-                  Forgot Password?
-                </Button>
-
-                <Button
-                  mt={4}
-                  type="submit"
-                  isLoading={isSubmitting}
-                  variant="solid"
-                  colorScheme="green"
-                >
-                  Login
-                </Button>
-              </Flex>
-            </Form>
-          );
-        }}
-      </Formik>
-    </Wrapper>
+    <>
+      <Wrapper type="small">
+        <Flex align="center" h="100%" width="100%">
+          <Box w="100%">
+            <Flex
+              mt="25%"
+              align="center"
+              justify="center"
+              direction="column"
+              gap={10}
+            >
+              <Heading size="xl" color="white">
+                Bubble.
+              </Heading>
+              <Box>
+                <Heading size="md">Login</Heading>
+                <Text color="white">Enter your credentials to login.</Text>
+              </Box>
+            </Flex>
+            <LoginForm />
+          </Box>
+        </Flex>
+      </Wrapper>
+    </>
   );
 };
 

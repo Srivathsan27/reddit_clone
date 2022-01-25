@@ -23,7 +23,7 @@ const FormInput: FC<FormInputProps> = ({
   inputType,
   ...props
 }) => {
-  let Comp: FC = Input;
+  let Comp: any = Input;
   if (inputType === "textarea") {
     Comp = Textarea;
   }
@@ -32,7 +32,13 @@ const FormInput: FC<FormInputProps> = ({
     <Box {...boxProps}>
       <FormControl isInvalid={!!error}>
         <FormLabel htmlFor={field.name}>{props.label}</FormLabel>
-        <Comp {...props} id={field.name} placeholder={props.label} {...field} />
+        <Comp
+          color="white"
+          {...props}
+          id={field.name}
+          placeholder={props.label}
+          {...field}
+        />
         {error && <FormErrorMessage>{error}</FormErrorMessage>}
       </FormControl>
     </Box>

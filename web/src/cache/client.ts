@@ -12,6 +12,7 @@ import {
   stringifyVariables,
 } from "urql";
 import { pipe, tap } from "wonka";
+import { isServer } from "../utils/isServer";
 import { cacheUpdates } from "./cacheUpdate";
 
 const errorExchange: Exchange =
@@ -87,68 +88,80 @@ const errorExchange: Exchange =
 //   }
 // };
 
-export const createURQLClient = (ssrExchange: any) => ({
-  url: "http://localhost:4000/graphql",
-  fetchOptions: {
-    credentials: "include" as const,
-  },
-  exchanges: [
-    dedupExchange,
-    cacheExchange({
-      updates: cacheUpdates,
-      resolvers: {
-        Query: {
-          posts: (parent, fieldArgs, cache, info) => {
-            const { parentKey: entityKey, fieldName } = info;
-
-            const allFields = cache.inspectFields(entityKey);
-            const fieldInfos = allFields.filter(
-              (info) => info.fieldName === fieldName
-            );
-            const size = fieldInfos.length;
-            if (size === 0) {
-              return undefined;
+export const createURQLClient = (ssrExchange: any, ctx: any) => {
+  let cookie = "";
+  if (isServer()) {
+    cookie = ctx?.req?.headers?.cookie;
+  }
+  return {
+    url: "http://localhost:4000/graphql",
+    fetchOptions: {
+      credentials: "include" as const,
+      headers:
+        cookie !== ""
+          ? {
+              cookie,
             }
+          : undefined,
+    },
+    exchanges: [
+      dedupExchange,
+      cacheExchange({
+        updates: cacheUpdates,
+        resolvers: {
+          Query: {
+            posts: (parent, fieldArgs, cache, info) => {
+              const { parentKey: entityKey, fieldName } = info;
 
-            const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
-
-            const isInCache = cache.resolve(
-              cache.resolve(entityKey, fieldKey) as string,
-              "posts"
-            );
-            info.partial = !isInCache;
-            const results: string[] = [];
-
-            let hasMorePosts: boolean = true;
-            fieldInfos.forEach((fi) => {
-              const data = cache.resolve(
-                cache.resolve(entityKey, fi.fieldKey) as string,
-                "posts"
-              ) as string[];
-              const hasMore = cache.resolve(
-                cache.resolve(entityKey, fieldKey) as string,
-                "hasMorePosts"
+              const allFields = cache.inspectFields(entityKey);
+              const fieldInfos = allFields.filter(
+                (info) => info.fieldName === fieldName
               );
-              if (!hasMore as boolean) {
-                hasMorePosts = hasMore as boolean;
+              const size = fieldInfos.length;
+              if (size === 0) {
+                return undefined;
               }
-              results.push(...data);
-            });
 
-            return {
-              __typename: "PostsResponse",
-              posts: results,
-              hasMorePosts,
-            };
+              const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+
+              const isInCache = cache.resolve(
+                cache.resolve(entityKey, fieldKey) as string,
+                "posts"
+              );
+              info.partial = !isInCache;
+              const results: string[] = [];
+
+              let hasMorePosts: boolean = true;
+              fieldInfos.forEach((fi) => {
+                const data = cache.resolve(
+                  cache.resolve(entityKey, fi.fieldKey) as string,
+                  "posts"
+                ) as string[];
+                const hasMore = cache.resolve(
+                  cache.resolve(entityKey, fieldKey) as string,
+                  "hasMorePosts"
+                );
+                if (!hasMore as boolean) {
+                  hasMorePosts = hasMore as boolean;
+                }
+                results.push(...data);
+              });
+
+              return {
+                __typename: "PostsResponse",
+                posts: results,
+                hasMorePosts,
+              };
+            },
           },
         },
-      },
-      keys: {
-        PostsResponse: () => null,
-      },
-    }),
-    ssrExchange,
-    errorExchange,
-    fetchExchange,
-  ],
-});
+        keys: {
+          PostsResponse: () => null,
+        },
+      }),
+      ssrExchange,
+      errorExchange,
+      fetchExchange,
+    ],
+  };
+};

@@ -1,13 +1,34 @@
-import { Box, Button, Flex, Link, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Icon,
+  IconButton,
+  Link,
+  Text,
+} from "@chakra-ui/react";
+import { AccountCircle } from "@mui/icons-material";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
-import { Component, FC, useState } from "react";
+import { FC } from "react";
 import { useLogoutMutation } from "../../generated/graphql";
+import ProfileMenu from "./ProfileButton";
 
 interface NavbarProps {
   isLoggedIn?: boolean;
   username?: string;
 }
+
+const Title = () => {
+  return (
+    <NextLink href="/">
+      <Heading cursor="pointer" ml={4} size="3xl" mb={3}>
+        Bubble.
+      </Heading>
+    </NextLink>
+  );
+};
 
 const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
   let bodyRight: any = null;
@@ -25,7 +46,8 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
 
   if (isLoggedIn) {
     bodyLeft = (
-      <Flex>
+      <Flex align="center" gap={5}>
+        <Title />
         <NextLink href="/create-post">
           <Button variant="outline" colorScheme="black" isLoading={fetching}>
             Post +
@@ -35,12 +57,6 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
     );
     bodyRight = (
       <Flex ml="auto" gap={5} alignItems="center" justifyContent="space-evenly">
-        <Text>Hello {username} </Text>
-        <NextLink href="/reset-password">
-          <Button variant="outline" colorScheme="black" isLoading={fetching}>
-            Reset
-          </Button>
-        </NextLink>
         <Button
           onClick={logoutHandler}
           variant="outline"
@@ -49,16 +65,20 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
         >
           Logout
         </Button>
+        <NextLink href="/reset-password">
+          <ProfileMenu />
+        </NextLink>
       </Flex>
     );
   } else {
+    bodyLeft = <Title />;
     bodyRight = (
-      <Flex ml="auto" gap={5}>
+      <Flex ml="auto" gap={5} pr={4}>
         <NextLink href="/login">
-          <Link>Login</Link>
+          <Link fontSize="lg">Login</Link>
         </NextLink>
         <NextLink href="/register">
-          <Link>Register</Link>
+          <Link fontSize="lg">Register</Link>
         </NextLink>
       </Flex>
     );
@@ -66,13 +86,16 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
 
   return (
     <Flex
-      padding={8}
-      bgColor="green.300"
+      padding={4}
+      bg="linear-gradient(to right top, #283B6B, #2E4781, #335094, #3655a0, #3f63bd)"
       alignItems="center"
       justifyContent="space-between"
       position={"sticky"}
       top={0}
+      color="white"
       zIndex={10}
+      boxShadow="0px 6px 16px 0px #0D478A85"
+      minH="90px"
     >
       {bodyLeft}
       {bodyRight}
