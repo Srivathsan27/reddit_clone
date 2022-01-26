@@ -1,8 +1,12 @@
 import {
+  Cache,
   cacheExchange,
+  DataFields,
   Entity,
   EntityField,
+  ResolveInfo,
   Resolver,
+  Variables,
 } from "@urql/exchange-graphcache";
 import Router from "next/router";
 import {
@@ -12,6 +16,10 @@ import {
   stringifyVariables,
 } from "urql";
 import { pipe, tap } from "wonka";
+import {
+  MyPostsQueryVariables,
+  PostsQueryVariables,
+} from "../generated/graphql";
 import { isServer } from "../utils/isServer";
 import { cacheUpdates } from "./cacheUpdate";
 
@@ -32,9 +40,54 @@ const errorExchange: Exchange =
     );
   };
 
-// const cursorPagination = (): Resolver => {
-//   return
-// };
+function cursorPagination<FieldArgsType extends Variables>(): Resolver {
+  return (
+    _parent: DataFields,
+    fieldArgs: FieldArgsType,
+    cache: Cache,
+    info: ResolveInfo
+  ) => {
+    const { parentKey: entityKey, fieldName } = info;
+
+    const allFields = cache.inspectFields(entityKey);
+    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
+    const size = fieldInfos.length;
+    if (size === 0) {
+      return undefined;
+    }
+
+    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+
+    const isInCache = cache.resolve(
+      cache.resolve(entityKey, fieldKey) as string,
+      "posts"
+    );
+    info.partial = !isInCache;
+    const results: string[] = [];
+
+    let hasMorePosts: boolean = true;
+    fieldInfos.forEach((fi) => {
+      const data = cache.resolve(
+        cache.resolve(entityKey, fi.fieldKey) as string,
+        "posts"
+      ) as string[];
+      const hasMore = cache.resolve(
+        cache.resolve(entityKey, fieldKey) as string,
+        "hasMorePosts"
+      );
+      if (!hasMore as boolean) {
+        hasMorePosts = hasMore as boolean;
+      }
+      results.push(...data);
+    });
+
+    return {
+      __typename: "PostsResponse",
+      posts: results,
+      hasMorePosts,
+    };
+  };
+}
 //   const visited = new Set();
 //   let result: NullArray<string> = [];
 //   let prevOffset: number | null = null;
@@ -110,49 +163,8 @@ export const createURQLClient = (ssrExchange: any, ctx: any) => {
         updates: cacheUpdates,
         resolvers: {
           Query: {
-            posts: (parent, fieldArgs, cache, info) => {
-              const { parentKey: entityKey, fieldName } = info;
-
-              const allFields = cache.inspectFields(entityKey);
-              const fieldInfos = allFields.filter(
-                (info) => info.fieldName === fieldName
-              );
-              const size = fieldInfos.length;
-              if (size === 0) {
-                return undefined;
-              }
-
-              const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
-
-              const isInCache = cache.resolve(
-                cache.resolve(entityKey, fieldKey) as string,
-                "posts"
-              );
-              info.partial = !isInCache;
-              const results: string[] = [];
-
-              let hasMorePosts: boolean = true;
-              fieldInfos.forEach((fi) => {
-                const data = cache.resolve(
-                  cache.resolve(entityKey, fi.fieldKey) as string,
-                  "posts"
-                ) as string[];
-                const hasMore = cache.resolve(
-                  cache.resolve(entityKey, fieldKey) as string,
-                  "hasMorePosts"
-                );
-                if (!hasMore as boolean) {
-                  hasMorePosts = hasMore as boolean;
-                }
-                results.push(...data);
-              });
-
-              return {
-                __typename: "PostsResponse",
-                posts: results,
-                hasMorePosts,
-              };
-            },
+            posts: cursorPagination<PostsQueryVariables>(),
+            myPosts: cursorPagination<MyPostsQueryVariables>(),
           },
         },
         keys: {

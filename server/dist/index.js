@@ -28,6 +28,7 @@ const Post_1 = require("./entities/Post");
 const User_1 = require("./entities/User");
 const post_1 = require("./resolvers/post");
 const user_1 = require("./resolvers/user");
+const userLoader_1 = require("./Loaders/userLoader");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
     const mongoStore = (0, connect_mongodb_session_1.default)(express_session_1.default);
@@ -71,7 +72,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             validate: false,
         }),
         plugins: [graphqlPlayground_1.ApolloServerPluginLandingPageGraphQLPlayground],
-        context: ({ req, res }) => ({ req, res }),
+        context: ({ req, res }) => ({ req, res, userLoader: (0, userLoader_1.createUserLoader)() }),
     });
     yield apolloServer.start();
     apolloServer.applyMiddleware({

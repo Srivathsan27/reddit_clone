@@ -13,6 +13,9 @@ import {
   LoginMutation,
   LogoutMutation,
   HitPostMutationVariables,
+  ChangePasswordMutation,
+  DeletePostMutationVariables,
+  UpdatePostMutationVariables,
 } from "../generated/graphql";
 
 function updateCache<Result, Query>(
@@ -140,6 +143,52 @@ export const cacheUpdates = {
         }
       );
     },
+    changePassword: (
+      result: DataFields,
+      args: Variables,
+      cache: Cache,
+      info: ResolveInfo
+    ) => {
+      cache.invalidate("Query", "posts", {
+        limit: 10,
+      });
+      const allFields = cache.inspectFields("Query");
+      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
+      fieldInfos.forEach((fi) => {
+        cache.invalidate("Query", "posts", fi.arguments);
+      });
+
+      updateCache<ChangePasswordMutation, MeQuery>(
+        cache,
+        { query: MeDocument },
+        result,
+        (res, oldData) => {
+          if (res.changePassword?.errors) {
+            return oldData;
+          } else {
+            return {
+              me: res.changePassword?.user,
+            };
+          }
+        }
+      );
+    },
+    resetPassword: (
+      result: DataFields,
+      args: Variables,
+      cache: Cache,
+      info: ResolveInfo
+    ) => {
+      cache.invalidate("Query", "me");
+      cache.invalidate("Query", "posts", {
+        limit: 10,
+      });
+      const allFields = cache.inspectFields("Query");
+      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
+      fieldInfos.forEach((fi) => {
+        cache.invalidate("Query", "posts", fi.arguments);
+      });
+    },
     logout: (
       result: DataFields,
       args: Variables,
@@ -169,6 +218,55 @@ export const cacheUpdates = {
           }
         }
       );
+    },
+    delete: (
+      result: any,
+      args: DeletePostMutationVariables,
+      cache: Cache,
+      info: any
+    ) => {
+      cache.invalidate("Query", "post", {
+        id: args.id,
+      });
+      cache.invalidate("Query", "posts", {
+        limit: 10,
+      });
+      const allFields = cache.inspectFields("Query");
+      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
+      fieldInfos.forEach((fi) => {
+        cache.invalidate("Query", "posts", fi.arguments);
+      });
+    },
+    updatePost: (
+      result: any,
+      { id, input: { title, content } }: UpdatePostMutationVariables,
+      cache: Cache,
+      info: any
+    ) => {
+      const data = cache.readFragment(
+        gql`
+          fragment _ on Post {
+            id
+            title
+            content
+          }
+        `,
+        { id }
+      );
+      if (data) {
+        cache.writeFragment(
+          gql`
+            fragment __ on Post {
+              id
+              title
+              content
+              contentSnip
+            }
+          `,
+          { id, title, content, contentSnip: content.slice(0, 80) }
+        );
+        console.log(cache.inspectFields("updatePost"));
+      }
     },
   },
 };

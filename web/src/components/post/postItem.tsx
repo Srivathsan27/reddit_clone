@@ -1,8 +1,10 @@
 import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
-import { Box, Flex, Heading, IconButton, Text } from "@chakra-ui/react";
+import { Box, Flex, Heading, IconButton, Link, Text } from "@chakra-ui/react";
 import { FC, useState } from "react";
 import { useHitPostMutation } from "../../generated/graphql";
 import Card from "../UI/Card";
+import NextLink from "next/link";
+import HitSection from "./HitSection";
 
 interface PostProps {
   id: number;
@@ -24,64 +26,18 @@ const PostItem: FC<PostProps> = ({
   hits,
   ..._
 }) => {
-  const [, hit] = useHitPostMutation();
-  const [loading, setLoading] = useState<"hit" | "dump" | "none">("none");
-
-  const hitHander = async () => {
-    setLoading("hit");
-    await hit({
-      post: id,
-      value: 1,
-    });
-    setLoading("none");
-  };
-
-  const dumpHander = async () => {
-    setLoading("dump");
-    await hit({
-      post: id,
-      value: -1,
-    });
-    setLoading("none");
-  };
-
   return (
     <Card>
       <Flex gap={3} alignItems="flex-start">
-        <Flex mt={2} gap={3} alignItems="center" direction="column" flex={0.12}>
-          <IconButton
-            colorScheme={hitStatus === 1 ? "green" : "black"}
-            aria-label="Call Segun"
-            size="md"
-            borderRadius="50%"
-            icon={
-              <ArrowUpIcon color={hitStatus === 1 ? "green.800" : "teal.500"} />
-            }
-            onClick={hitHander}
-            isLoading={loading === "hit"}
-          />
-          <Box boxSizing="border-box">
-            <Text color="blue.500">{hits}</Text>
-          </Box>
-          <IconButton
-            colorScheme={hitStatus === -1 ? "red" : "black"}
-            aria-label="Call Segun"
-            size="md"
-            borderRadius="50%"
-            icon={
-              <ArrowDownIcon
-                color={hitStatus === -1 ? "orange.900" : "teal.500"}
-              />
-            }
-            onClick={dumpHander}
-            isLoading={loading === "dump"}
-          />
-        </Flex>
-
+        <HitSection postId={id} hitStatus={hitStatus} hits={hits} />
         <Box flex={0.88} pb={3}>
-          <Heading as="h2" size="lg" p={3} pb={1}>
-            {title}
-          </Heading>
+          <NextLink href={`/post/${id}`}>
+            <Link>
+              <Heading as="h2" size="lg" p={3} pb={1}>
+                {title}
+              </Heading>
+            </Link>
+          </NextLink>
           <Text mt={0.4} p={3} fontSize="sm">
             Post by {creator}. Uploaded at {uploadedAt.toUTCString()}
           </Text>

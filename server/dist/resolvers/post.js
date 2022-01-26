@@ -32,11 +32,22 @@ const isAuth_1 = require("../middleware/isAuth");
 const typeorm_1 = require("typeorm");
 const Hit_1 = require("../entities/Hit");
 let PostResolver = class PostResolver {
-    content(post) {
+    contentSnip(post) {
         if (post.content.length > 80) {
             return post.content.substring(0, 80);
         }
         return post.content;
+    }
+    creator(post, { userLoader }) {
+        return userLoader.load(post.creatorId);
+    }
+    isOwnPost(post, { req }) {
+        if (req.session.userId) {
+            return req.session.userId === post.creatorId;
+        }
+        else {
+            return false;
+        }
     }
     hitPost({ req }, postId, hitValue) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -59,8 +70,13 @@ let PostResolver = class PostResolver {
             }
             else {
                 (0, typeorm_1.getConnection)().transaction((tm) => __awaiter(this, void 0, void 0, function* () {
-                    yield tm.query(`insert into hit("userId", "postId", "hitValue") values (${userId}, ${postId}, ${value});`);
-                    yield tm.query(`update post set "numberOfHits" = "numberOfHits" + ${value} where id = ${postId};`);
+                    try {
+                        yield tm.query(`insert into hit("userId", "postId", "hitValue") values (${userId}, ${postId}, ${value});`);
+                        yield tm.query(`update post set "numberOfHits" = "numberOfHits" + ${value} where id = ${postId};`);
+                    }
+                    catch (err) {
+                        console.log("error: ", err);
+                    }
                 }));
             }
             // await getConnection().query(`
@@ -83,25 +99,37 @@ let PostResolver = class PostResolver {
             const { userId } = req.session;
             const posts = yield (0, typeorm_1.getConnection)().query(`
       select 
-        p.*, 
-        json_build_object(
-          'id', u.id,
-          'username', u.username,
-          'email', u.email,
-          'createdAt', u."createdAt", 
-          'updatedAt', u."updatedAt" 
-        ) as creator
+        p.* 
         ,(select "hitValue" from hit h where h."userId" = $3  and h."postId" = p.id) "hitStatus"
       from post p
-      inner join public.user u  on u.id = p."creatorId"
       where p."createdAt" < $1
       order by p."createdAt" DESC
       limit $2
     `, [cur, testLimit, userId]);
-            console.log(posts);
             return {
                 hasMorePosts: posts.length === testLimit,
-                posts: posts.slice(0, realLimit).map((post) => (Object.assign(Object.assign({}, post), { hitStatus: [-1, 1].includes(post.hitStatus) ? post.hitStatus : 0, isOwnPost: userId === post.creatorId }))),
+                posts: posts.slice(0, realLimit).map((post) => (Object.assign(Object.assign({}, post), { hitStatus: [-1, 1].includes(post.hitStatus) ? post.hitStatus : 0 }))),
+            };
+        });
+    }
+    myPosts({ req }, limit, cursor) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let cur = new Date();
+            if (cursor) {
+                cur = new Date(+cursor);
+            }
+            const { userId } = req.session;
+            const posts = yield (0, typeorm_1.getConnection)().query(`
+        select p.*
+        ,(select "hitValue" from hit h where h."userId" = $3 and h."postId" = p.id) "hitStatus"
+        from post p
+        where p."creatorId" = $3 and p."createdAt" < $2
+        order by p."createdAt" DESC
+        limit $1
+    `, [limit + 1, cur, userId]);
+            return {
+                hasMorePosts: posts.length === limit + 1,
+                posts: posts.slice(0, limit).map((post) => (Object.assign(Object.assign({}, post), { hitStatus: [-1, 1].includes(post.hitStatus) ? post.hitStatus : 0 }))),
             };
         });
     }
@@ -111,18 +139,10 @@ let PostResolver = class PostResolver {
             try {
                 const post = yield (0, typeorm_1.getConnection)().query(`
         select 
-        p.*, 
-        json_build_object(
-          'id', u.id,
-          'username', u.username,
-          'email', u.email,
-          'createdAt', u."createdAt", 
-          'updatedAt', u."updatedAt" 
-          ) as creator
+          p.*  
           ,(select "hitValue" from hit h where h."userId" = $2  and h."postId" = p.id) "hitStatus"
-          from post p
-          inner join public.user u  on u.id = p."creatorId"
-      where p.id = $1
+        from post p
+        where p.id = $1
 
     `, [id, userId]);
                 if (post === []) {
@@ -174,7 +194,7 @@ let PostResolver = class PostResolver {
             return { post };
         });
     }
-    updatePost(id, input) {
+    updatePost(id, input, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
             const post = yield Post_1.Post.findOne(id);
             if (!post) {
@@ -182,6 +202,14 @@ let PostResolver = class PostResolver {
                     errors: {
                         field: "ID",
                         message: "The Post Does Not Exist!",
+                    },
+                };
+            }
+            if (req.session.userId !== post.creatorId) {
+                return {
+                    errors: {
+                        field: "user",
+                        message: "User not Authorized!",
                     },
                 };
             }
@@ -193,55 +221,64 @@ let PostResolver = class PostResolver {
             };
         });
     }
-    deleteAllPosts() {
+    // @Mutation(() => BooleanResponse)
+    // async deleteAllPosts(): Promise<BooleanResponse> {
+    //   try {
+    //     await Post.delete({});
+    //   } catch (err) {
+    //     console.log(err);
+    //     return {
+    //       errors: [
+    //         {
+    //           field: "dg",
+    //           message: "gd",
+    //         },
+    //       ],
+    //     };
+    //   }
+    //   return {
+    //     status: true,
+    //   };
+    // }
+    delete(id, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
+            const post = yield Post_1.Post.findOne(id);
+            if (!post) {
+                return {
+                    errors: [
+                        {
+                            field: "id",
+                            message: "the post does not exist!",
+                        },
+                    ],
+                };
+            }
+            if (post.creatorId !== req.session.userId) {
+                return {
+                    errors: [
+                        {
+                            field: "user",
+                            message: "The user is not authorized!",
+                        },
+                    ],
+                };
+            }
             try {
-                yield Post_1.Post.delete({});
+                yield Post_1.Post.delete(id);
             }
             catch (err) {
                 console.log(err);
                 return {
                     errors: [
                         {
-                            field: "dg",
-                            message: "gd",
+                            field: "server",
+                            message: "Server error, Could not delete post!",
                         },
                     ],
                 };
             }
             return {
                 status: true,
-            };
-        });
-    }
-    delete(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const deleteResult = yield Post_1.Post.delete(id);
-                if (deleteResult.affected) {
-                    return {
-                        status: true,
-                    };
-                }
-            }
-            catch (err) {
-                return {
-                    errors: [
-                        {
-                            field: "id",
-                            message: "Oops, Could not delete post!",
-                        },
-                    ],
-                };
-            }
-            return {
-                status: false,
-                errors: [
-                    {
-                        field: "id",
-                        message: "Oops, Could not delete post!",
-                    },
-                ],
             };
         });
     }
@@ -252,7 +289,23 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Post_1.Post]),
     __metadata("design:returntype", void 0)
-], PostResolver.prototype, "content", null);
+], PostResolver.prototype, "contentSnip", null);
+__decorate([
+    (0, type_graphql_1.FieldResolver)(),
+    __param(0, (0, type_graphql_1.Root)()),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Post_1.Post, Object]),
+    __metadata("design:returntype", void 0)
+], PostResolver.prototype, "creator", null);
+__decorate([
+    (0, type_graphql_1.FieldResolver)(),
+    __param(0, (0, type_graphql_1.Root)()),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Post_1.Post, Object]),
+    __metadata("design:returntype", void 0)
+], PostResolver.prototype, "isOwnPost", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
     (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
@@ -273,8 +326,19 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "posts", null);
 __decorate([
+    (0, type_graphql_1.Query)(() => PostsResponse_1.PostsResponse),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(1, (0, type_graphql_1.Arg)("limit", () => type_graphql_1.Int)),
+    __param(2, (0, type_graphql_1.Arg)("cursor", () => String, { nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, String]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "myPosts", null);
+__decorate([
     (0, type_graphql_1.Query)(() => PostResponse_1.PostResponse),
-    __param(0, (0, type_graphql_1.Arg)("id")),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)("id", () => type_graphql_1.Int)),
     __param(1, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, Object]),
@@ -291,23 +355,21 @@ __decorate([
 ], PostResolver.prototype, "newPost", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => PostResponse_1.PostResponse),
-    __param(0, (0, type_graphql_1.Arg)("id")),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)("id", () => type_graphql_1.Int)),
     __param(1, (0, type_graphql_1.Arg)("input", () => PostInput_1.PostInput)),
+    __param(2, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, PostInput_1.PostInput]),
+    __metadata("design:paramtypes", [Number, PostInput_1.PostInput, Object]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "updatePost", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => BooleanResponse_1.BooleanResponse),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)("id", () => type_graphql_1.Int)),
+    __param(1, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], PostResolver.prototype, "deleteAllPosts", null);
-__decorate([
-    (0, type_graphql_1.Mutation)(() => BooleanResponse_1.BooleanResponse),
-    __param(0, (0, type_graphql_1.Arg)("id")),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "delete", null);
 PostResolver = __decorate([

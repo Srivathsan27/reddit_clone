@@ -1,8 +1,7 @@
-import { Button, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { withUrqlClient } from "next-urql";
-import { useRouter } from "next/router";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { createURQLClient } from "../cache/client";
 import FormInput from "../components/FormInput";
 import Wrapper from "../components/UI/Wrapper";
@@ -11,12 +10,13 @@ import { isValidEmail } from "../utils/isValidEmail";
 
 interface ForgotPasswordProps {}
 
-const ForgotPassword: FC<ForgotPasswordProps> = ({}) => {
+const ForgotPasswordForm = ({}) => {
   const [, forgotPassword] = useForgotPasswordMutation();
 
-  let body: JSX.Element = <></>;
+  const [body, setBody] = useState<JSX.Element | null>(null);
+
   return (
-    <Wrapper type="small">
+    <Flex direction="column" gap={4} mt={6}>
       <Formik
         initialValues={{
           email: "",
@@ -33,8 +33,8 @@ const ForgotPassword: FC<ForgotPasswordProps> = ({}) => {
                 email: "Invlid Email. Please enter a valid Email!",
               });
             } else {
-              body = (
-                <Text>
+              setBody(
+                <Text color="white" textAlign="center">
                   An Email has been sent to {values.email}. Please verify to
                   further continue.
                 </Text>
@@ -48,20 +48,57 @@ const ForgotPassword: FC<ForgotPasswordProps> = ({}) => {
             <Form>
               <FormInput name="email" label="Email" />
 
-              <Button
-                mt={4}
-                type="submit"
-                isLoading={isSubmitting}
-                variant="solid"
-                colorScheme="green"
-              >
-                Next
-              </Button>
+              {!body && (
+                <Flex w="100%" justify="flex-end">
+                  <Button
+                    mt={7}
+                    type="submit"
+                    isLoading={isSubmitting}
+                    variant="solid"
+                    colorScheme="blue"
+                  >
+                    Next
+                  </Button>
+                </Flex>
+              )}
             </Form>
           );
         }}
       </Formik>
-      {body}
+      <Box mt={7}>{body}</Box>
+    </Flex>
+  );
+};
+
+const ForgotPassword: FC<ForgotPasswordProps> = () => {
+  return (
+    <Wrapper type="small">
+      <Flex align="center" h="100%" width="100%">
+        <Box w="100%">
+          <Flex
+            pt="25%"
+            align="center"
+            justify="center"
+            direction="column"
+            gap={8}
+          >
+            <Heading size="xl" color="white">
+              Bubble.
+            </Heading>
+            <Box>
+              <Heading textAlign="center" color="white" size="md">
+                Forgot Password
+              </Heading>
+              <Text mt={3} color="white" textAlign="center">
+                Enter your registered Email to continue. <br />
+                An email will be sent, and the password can be changed using the
+                link provided
+              </Text>
+            </Box>
+          </Flex>
+          <ForgotPasswordForm />
+        </Box>
+      </Flex>
     </Wrapper>
   );
 };

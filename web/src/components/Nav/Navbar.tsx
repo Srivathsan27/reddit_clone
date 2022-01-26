@@ -1,19 +1,9 @@
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Icon,
-  IconButton,
-  Link,
-  Text,
-} from "@chakra-ui/react";
-import { AccountCircle } from "@mui/icons-material";
+import { Button, Flex, Heading, Link } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { FC } from "react";
 import { useLogoutMutation } from "../../generated/graphql";
-import ProfileMenu from "./ProfileButton";
+import ProfileMenu from "./ProfileMenu";
 
 interface NavbarProps {
   isLoggedIn?: boolean;
@@ -23,9 +13,11 @@ interface NavbarProps {
 const Title = () => {
   return (
     <NextLink href="/">
-      <Heading cursor="pointer" ml={4} size="3xl" mb={3}>
-        Bubble.
-      </Heading>
+      <Link>
+        <Heading cursor="pointer" ml={4} size="3xl" mb={3}>
+          Bubble.
+        </Heading>
+      </Link>
     </NextLink>
   );
 };
@@ -33,14 +25,15 @@ const Title = () => {
 const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
   let bodyRight: any = null;
   let bodyLeft: any = null;
-  const router = useRouter();
   const [{ fetching }, logout] = useLogoutMutation();
+  const router = useRouter();
 
   const logoutHandler = async () => {
     const response = await logout();
     if (response.error || !response.data?.logout) {
     } else {
       console.log("success");
+      router.replace("/");
     }
   };
 
@@ -66,7 +59,7 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
           Logout
         </Button>
         <NextLink href="/reset-password">
-          <ProfileMenu />
+          <ProfileMenu username={username ? username : null} />
         </NextLink>
       </Flex>
     );

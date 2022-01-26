@@ -3,7 +3,7 @@ fragment post_all on Post {
   createdAt
   updatedAt
   title
-  content
+  contentSnip
   numberOfHits
   hitStatus
   creatorId

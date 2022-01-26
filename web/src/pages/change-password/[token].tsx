@@ -1,4 +1,4 @@
-import { Button, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { NextPage } from "next";
 import FormInput from "../../components/FormInput";
@@ -10,13 +10,13 @@ import { withUrqlClient } from "next-urql";
 import { createURQLClient } from "../../cache/client";
 import { useState } from "react";
 
-const ChangePassword: React.FC = () => {
+const ChangePasswordForm: React.FC = () => {
   const [, changePassword] = useChangePasswordMutation();
   const router = useRouter();
 
-  const [body, setBody] = useState(<></>);
+  const [body, setBody] = useState<JSX.Element | null>(null);
   return (
-    <Wrapper type="small">
+    <Flex w="100%" direction="column" gap={4} mt={6}>
       <Formik
         initialValues={{
           password: "",
@@ -45,7 +45,11 @@ const ChangePassword: React.FC = () => {
               const errMap = toErrorMap(response.data.changePassword.errors);
               if (!errMap["token"]) setErrors(errMap);
               else {
-                setBody(<Text>Token Has Expired!</Text>);
+                setBody(
+                  <Text color="red.200" fontSize="md" textAlign="center">
+                    Token Has Expired!
+                  </Text>
+                );
               }
             } else {
               router.replace("/");
@@ -65,19 +69,54 @@ const ChangePassword: React.FC = () => {
               }}
               type="password"
             />
-            <Button
-              type="submit"
-              mt={4}
-              colorScheme="green"
-              variant="solid"
-              isLoading={isSubmitting}
-            >
-              Register
-            </Button>
+            {!body && (
+              <Flex justify="flex-end">
+                <Button
+                  type="submit"
+                  mt={8}
+                  colorScheme="blue"
+                  variant="solid"
+                  isLoading={isSubmitting}
+                >
+                  Change
+                </Button>
+              </Flex>
+            )}
           </Form>
         )}
       </Formik>
-      {body}
+      <Box mt={8}>{body}</Box>
+    </Flex>
+  );
+};
+
+const ChangePassword: React.FC = () => {
+  return (
+    <Wrapper type="small">
+      <Flex align="center" h="100%" width="100%">
+        <Box w="100%">
+          <Flex
+            pt="25%"
+            align="center"
+            justify="center"
+            direction="column"
+            gap={8}
+          >
+            <Heading size="xl" color="white">
+              Bubble.
+            </Heading>
+            <Box>
+              <Heading textAlign="center" color="white" size="md">
+                Change Password
+              </Heading>
+              <Text mt={3} color="white" textAlign="center">
+                Enter your new password here to login.
+              </Text>
+            </Box>
+          </Flex>
+          <ChangePasswordForm />
+        </Box>
+      </Flex>
     </Wrapper>
   );
 };

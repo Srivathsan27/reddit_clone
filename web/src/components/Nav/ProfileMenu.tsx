@@ -6,12 +6,17 @@ import {
   MenuItem,
   Icon,
   CloseButton,
+  Link,
 } from "@chakra-ui/react";
-import { AccountCircle, Clear } from "@mui/icons-material";
+import { AccountCircle } from "@mui/icons-material";
 import { FC } from "react";
 import NextLink from "next/link";
 
-const ProfileMenu: FC = ({}) => {
+interface ProfileProps {
+  username: string | null;
+}
+
+const ProfileMenu: FC<ProfileProps> = ({ username }) => {
   return (
     <Menu>
       {({ isOpen }) => (
@@ -25,13 +30,22 @@ const ProfileMenu: FC = ({}) => {
             )}
           </MenuButton>
           <MenuList>
+            {username === null ? null : (
+              <MenuItem textAlign="right">Hello {username}</MenuItem>
+            )}
             <MenuItem>Profile</MenuItem>
-            <MenuItem>Your Posts</MenuItem>
+            <MenuItem>
+              <NextLink href="/my-posts">
+                <Link>My Posts</Link>
+              </NextLink>
+            </MenuItem>
             <MenuItem>Your Comments</MenuItem>
             <MenuItem>Friends</MenuItem>
             <MenuItem>Your Rooms</MenuItem>
             <MenuItem>
-              <NextLink href="/reset-password"> Reset Password</NextLink>
+              <NextLink href="/reset-password">
+                <Link>Reset Password</Link>
+              </NextLink>
             </MenuItem>
           </MenuList>
         </>

@@ -2,6 +2,7 @@ import { Box, ChakraProvider, ColorModeProvider } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import { createURQLClient } from "../cache/client";
 import Navbar from "../components/Nav/Navbar";
+import Footer from "../components/UI/Footer";
 import { useMeQuery } from "../generated/graphql";
 
 import theme from "../theme";
@@ -33,6 +34,7 @@ function MyApp({ Component, pageProps }) {
           minH="100vh"
         >
           <Component {...pageProps} />
+          <Footer />
         </Box>
       </ColorModeProvider>
     </ChakraProvider>

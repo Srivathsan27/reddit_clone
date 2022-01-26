@@ -32,6 +32,10 @@ __decorate([
     __metadata("design:type", String)
 ], Post.prototype, "content", void 0);
 __decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], Post.prototype, "contentSnip", void 0);
+__decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int),
     (0, typeorm_1.Column)({ type: "int", default: 0 }),
     __metadata("design:type", Number)

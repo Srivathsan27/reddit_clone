@@ -31,7 +31,6 @@ export type Mutation = {
   __typename?: 'Mutation';
   changePassword?: Maybe<UserResponse>;
   delete: BooleanResponse;
-  deleteAllPosts: BooleanResponse;
   forgotPassword: Scalars['Boolean'];
   hitPost: Scalars['Boolean'];
   login: UserResponse;
@@ -50,7 +49,7 @@ export type MutationChangePasswordArgs = {
 
 
 export type MutationDeleteArgs = {
-  id: Scalars['Float'];
+  id: Scalars['Int'];
 };
 
 
@@ -87,18 +86,20 @@ export type MutationResetPasswordArgs = {
 
 
 export type MutationUpdatePostArgs = {
-  id: Scalars['Float'];
+  id: Scalars['Int'];
   input: PostInput;
 };
 
 export type Post = {
   __typename?: 'Post';
   content: Scalars['String'];
+  contentSnip: Scalars['String'];
   createdAt: Scalars['String'];
   creator: User;
   creatorId: Scalars['Float'];
   hitStatus: Scalars['Int'];
   id: Scalars['Float'];
+  isOwnPost: Scalars['Boolean'];
   numberOfHits: Scalars['Int'];
   title: Scalars['String'];
   updatedAt: Scalars['String'];
@@ -130,14 +131,21 @@ export type PostsResponse = {
 export type Query = {
   __typename?: 'Query';
   me?: Maybe<User>;
+  myPosts: PostsResponse;
   post: PostResponse;
   posts: PostsResponse;
   users: Array<User>;
 };
 
 
+export type QueryMyPostsArgs = {
+  cursor?: InputMaybe<Scalars['String']>;
+  limit: Scalars['Int'];
+};
+
+
 export type QueryPostArgs = {
-  id: Scalars['Float'];
+  id: Scalars['Int'];
 };
 
 
@@ -167,7 +175,9 @@ export type UserResponse = {
   user?: Maybe<User>;
 };
 
-export type Post_AllFragment = { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, content: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } };
+export type Post_AllFragment = { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } };
+
+export type Single_PostFragment = { __typename?: 'Post', id: number, hitStatus: number, isOwnPost: boolean, title: string, content: string, numberOfHits: number, creator: { __typename?: 'User', id: number, username: string } };
 
 export type User_AllFragment = { __typename?: 'User', id: number, createdAt: string, updatedAt: string, username: string, email: string };
 
@@ -184,7 +194,14 @@ export type CreateNewPostMutationVariables = Exact<{
 }>;
 
 
-export type CreateNewPostMutation = { __typename?: 'Mutation', newPost: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, content: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
+export type CreateNewPostMutation = { __typename?: 'Mutation', newPost: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
+
+export type DeletePostMutationVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type DeletePostMutation = { __typename?: 'Mutation', delete: { __typename?: 'BooleanResponse', status?: boolean | null | undefined, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined } };
 
 export type ForgotPasswordMutationVariables = Exact<{
   email: Scalars['String'];
@@ -231,10 +248,33 @@ export type ResetPasswordMutationVariables = Exact<{
 
 export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'BooleanResponse', status?: boolean | null | undefined, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined } };
 
+export type UpdatePostMutationVariables = Exact<{
+  id: Scalars['Int'];
+  input: PostInput;
+}>;
+
+
+export type UpdatePostMutation = { __typename?: 'Mutation', updatePost: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, content: string, title: string } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: number, createdAt: string, updatedAt: string, username: string, email: string } | null | undefined };
+
+export type MyPostsQueryVariables = Exact<{
+  limit: Scalars['Int'];
+  cursor?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type MyPostsQuery = { __typename?: 'Query', myPosts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
+
+export type PostQueryVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type PostQuery = { __typename?: 'Query', post: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, hitStatus: number, isOwnPost: boolean, title: string, content: string, numberOfHits: number, creator: { __typename?: 'User', id: number, username: string } } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
 
 export type PostsQueryVariables = Exact<{
   limit: Scalars['Float'];
@@ -242,7 +282,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, content: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
 
 export const Post_AllFragmentDoc = gql`
     fragment post_all on Post {
@@ -250,10 +290,24 @@ export const Post_AllFragmentDoc = gql`
   createdAt
   updatedAt
   title
-  content
+  contentSnip
   numberOfHits
   hitStatus
   creatorId
+  creator {
+    id
+    username
+  }
+}
+    `;
+export const Single_PostFragmentDoc = gql`
+    fragment single_post on Post {
+  id
+  hitStatus
+  isOwnPost
+  title
+  content
+  numberOfHits
   creator {
     id
     username
@@ -302,6 +356,21 @@ export const CreateNewPostDocument = gql`
 
 export function useCreateNewPostMutation() {
   return Urql.useMutation<CreateNewPostMutation, CreateNewPostMutationVariables>(CreateNewPostDocument);
+};
+export const DeletePostDocument = gql`
+    mutation DeletePost($id: Int!) {
+  delete(id: $id) {
+    status
+    errors {
+      field
+      message
+    }
+  }
+}
+    `;
+
+export function useDeletePostMutation() {
+  return Urql.useMutation<DeletePostMutation, DeletePostMutationVariables>(DeletePostDocument);
 };
 export const ForgotPasswordDocument = gql`
     mutation ForgotPassword($email: String!) {
@@ -379,6 +448,25 @@ export const ResetPasswordDocument = gql`
 export function useResetPasswordMutation() {
   return Urql.useMutation<ResetPasswordMutation, ResetPasswordMutationVariables>(ResetPasswordDocument);
 };
+export const UpdatePostDocument = gql`
+    mutation UpdatePost($id: Int!, $input: PostInput!) {
+  updatePost(input: $input, id: $id) {
+    post {
+      id
+      content
+      title
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
+    `;
+
+export function useUpdatePostMutation() {
+  return Urql.useMutation<UpdatePostMutation, UpdatePostMutationVariables>(UpdatePostDocument);
+};
 export const MeDocument = gql`
     query Me {
   me {
@@ -389,6 +477,37 @@ export const MeDocument = gql`
 
 export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
+};
+export const MyPostsDocument = gql`
+    query MyPosts($limit: Int!, $cursor: String) {
+  myPosts(limit: $limit, cursor: $cursor) {
+    posts {
+      ...post_all
+    }
+    hasMorePosts
+  }
+}
+    ${Post_AllFragmentDoc}`;
+
+export function useMyPostsQuery(options: Omit<Urql.UseQueryArgs<MyPostsQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<MyPostsQuery>({ query: MyPostsDocument, ...options });
+};
+export const PostDocument = gql`
+    query Post($id: Int!) {
+  post(id: $id) {
+    post {
+      ...single_post
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
+    ${Single_PostFragmentDoc}`;
+
+export function usePostQuery(options: Omit<Urql.UseQueryArgs<PostQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<PostQuery>({ query: PostDocument, ...options });
 };
 export const PostsDocument = gql`
     query Posts($limit: Float!, $cursor: String) {

@@ -1,16 +1,22 @@
-import { Flex, Spinner, Text } from "@chakra-ui/react";
+import { Flex, Heading, Spinner, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { createURQLClient } from "../cache/client";
 import PostList from "../components/post/postList";
-import { Post, usePostsQuery } from "../generated/graphql";
+import { Post, useMyPostsQuery } from "../generated/graphql";
+import { useIsAuth } from "../utils/hooks/useIsAuth";
+import { isServer } from "../utils/isServer";
 
-const Index = () => {
+const MyPosts: FC = () => {
+  if (!isServer()) {
+    useIsAuth("/");
+  }
+
   const [variables, setvariables] = useState({
     limit: 10,
     cursor: undefined as undefined | string,
   });
-  const [{ data: postsData, fetching: loadingPosts }] = usePostsQuery({
+  const [{ data: postsData, fetching: loadingPosts }] = useMyPostsQuery({
     variables: variables,
   });
 
@@ -22,13 +28,16 @@ const Index = () => {
         <Spinner size="xl" />
       </Flex>
     );
-  } else if (!loadingPosts && !postsData?.posts.posts) {
+  } else if (!loadingPosts && !postsData?.myPosts.posts) {
     body = <Text>Oops, Something went Wrong!</Text>;
   } else {
-    const posts = postsData?.posts.posts as Post[];
+    const posts = postsData?.myPosts.posts as Post[];
 
     body = (
-      <Flex pt="5%">
+      <Flex pt="5%" direction="column" gap={12}>
+        <Heading size="lg" color="white" textAlign="center">
+          My Posts
+        </Heading>
         <PostList
           posts={posts}
           onClick={() => {
@@ -37,7 +46,7 @@ const Index = () => {
               cursor: posts[posts.length - 1].createdAt,
             });
           }}
-          loadMore={postsData?.posts.hasMorePosts as boolean}
+          loadMore={postsData?.myPosts.hasMorePosts as boolean}
         />
       </Flex>
     );
@@ -46,4 +55,4 @@ const Index = () => {
   return <>{body}</>;
 };
 
-export default withUrqlClient(createURQLClient, { ssr: true })(Index);
+export default withUrqlClient(createURQLClient, { ssr: true })(MyPosts);

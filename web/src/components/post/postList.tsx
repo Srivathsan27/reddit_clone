@@ -23,7 +23,7 @@ const PostList: FC<PostListProps> = ({ onClick, posts, loadMore }) => {
             <PostItem
               id={post.id}
               title={post.title}
-              content={post.content}
+              content={post.contentSnip}
               creator={post.creator.username}
               uploadedAt={new Date(+post.createdAt)}
               key={post.id}

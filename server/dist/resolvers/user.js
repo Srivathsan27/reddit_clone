@@ -166,7 +166,7 @@ let UserResolver = class UserResolver {
                 userId: user.id,
             });
             yield token.save();
-            const html = `<a href="http://localhost:3000/change-password/${id}">Change Password</a>`;
+            const html = `You can proceed with changing the password using the link provided below <br> <a href="http://localhost:3000/change-password/${id}">Change Password</a> <br> The link is valid for 3 hours from now, please change password before it expires, if expired, please regenerate the link by cliking <a href="http://localhost:3000/forgot-password">here</a>`;
             yield (0, sendEmail_1.sendEmail)(email, html, "Forgot Password Request");
             return true;
         });
@@ -196,7 +196,8 @@ let UserResolver = class UserResolver {
             const user = yield User_1.User.findOne(id);
             const hasedNewPassword = yield argon2_1.default.hash(password);
             if (user) {
-                User_1.User.update({ id }, { password: hasedNewPassword });
+                yield User_1.User.update({ id }, { password: hasedNewPassword });
+                // await authToken.delete();
                 req.session.userId = user.id;
                 req.session.cookie = new express_session_1.Cookie();
                 return { user };
