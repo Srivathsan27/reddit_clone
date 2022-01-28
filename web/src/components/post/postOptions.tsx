@@ -70,7 +70,7 @@ const PostOptions: FC<PostOptionsProps> = ({ postId, title, content }) => {
     }
   };
   return (
-    <Flex mt="auto" mb={5} ml="auto" pr={4} justify="flex-end">
+    <Flex mt="auto" mb={5} ml="auto" pr={8} justify="flex-end">
       <Popover
         isOpen={isOpen}
         onOpen={onOpen}

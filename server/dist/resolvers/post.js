@@ -31,6 +31,8 @@ const BooleanResponse_1 = require("../ObjectTypes/BooleanResponse");
 const isAuth_1 = require("../middleware/isAuth");
 const typeorm_1 = require("typeorm");
 const Hit_1 = require("../entities/Hit");
+const CommentResponse_1 = require("../ObjectTypes/CommentResponse");
+const Comment_1 = require("../entities/Comment");
 let PostResolver = class PostResolver {
     contentSnip(post) {
         if (post.content.length > 80) {
@@ -40,6 +42,12 @@ let PostResolver = class PostResolver {
     }
     creator(post, { userLoader }) {
         return userLoader.load(post.creatorId);
+    }
+    comments(post) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let comments = yield Comment_1.Comment.find({ where: { postId: post.id } });
+            return comments;
+        });
     }
     isOwnPost(post, { req }) {
         if (req.session.userId) {
@@ -101,6 +109,7 @@ let PostResolver = class PostResolver {
       select 
         p.* 
         ,(select "hitValue" from hit h where h."userId" = $3  and h."postId" = p.id) "hitStatus"
+        ,(select count(*) from comment c where c."postId" = p.id ) "numberOfComments"
       from post p
       where p."createdAt" < $1
       order by p."createdAt" DESC
@@ -122,6 +131,7 @@ let PostResolver = class PostResolver {
             const posts = yield (0, typeorm_1.getConnection)().query(`
         select p.*
         ,(select "hitValue" from hit h where h."userId" = $3 and h."postId" = p.id) "hitStatus"
+        ,(select count(*) from comment c where c."postId" = p.id ) "numberOfComments"
         from post p
         where p."creatorId" = $3 and p."createdAt" < $2
         order by p."createdAt" DESC
@@ -146,7 +156,6 @@ let PostResolver = class PostResolver {
 
     `, [id, userId]);
                 if (post === []) {
-                    console.log("hello");
                     return {
                         errors: {
                             field: "id",
@@ -282,6 +291,44 @@ let PostResolver = class PostResolver {
             };
         });
     }
+    addComment({ req }, comment, postId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const com = yield Comment_1.Comment.findOne({
+                    where: {
+                        postId: postId,
+                        userId: req.session.userId,
+                    },
+                });
+                if (com) {
+                    return {
+                        error: {
+                            field: "comment",
+                            message: "User has already commented!",
+                        },
+                    };
+                }
+                const createdComment = yield Comment_1.Comment.create({
+                    postId,
+                    userId: req.session.userId,
+                    text: comment,
+                }).save();
+                // createdComment.postId
+                return {
+                    comment: createdComment,
+                };
+            }
+            catch (err) {
+                console.log(err);
+                return {
+                    error: {
+                        field: "postId",
+                        message: "The post does not exist!",
+                    },
+                };
+            }
+        });
+    }
 };
 __decorate([
     (0, type_graphql_1.FieldResolver)(),
@@ -298,6 +345,13 @@ __decorate([
     __metadata("design:paramtypes", [Post_1.Post, Object]),
     __metadata("design:returntype", void 0)
 ], PostResolver.prototype, "creator", null);
+__decorate([
+    (0, type_graphql_1.FieldResolver)(),
+    __param(0, (0, type_graphql_1.Root)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Post_1.Post]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "comments", null);
 __decorate([
     (0, type_graphql_1.FieldResolver)(),
     __param(0, (0, type_graphql_1.Root)()),
@@ -372,6 +426,16 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "delete", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => CommentResponse_1.CommentResponse),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(1, (0, type_graphql_1.Arg)("comment")),
+    __param(2, (0, type_graphql_1.Arg)("post", () => type_graphql_1.Int)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Number]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "addComment", null);
 PostResolver = __decorate([
     (0, type_graphql_1.Resolver)(() => Post_1.Post)
 ], PostResolver);

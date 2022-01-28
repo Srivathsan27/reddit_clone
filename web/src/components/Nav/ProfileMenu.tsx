@@ -11,6 +11,7 @@ import {
 import { AccountCircle } from "@mui/icons-material";
 import { FC } from "react";
 import NextLink from "next/link";
+import Router from "next/router";
 
 interface ProfileProps {
   username: string | null;
@@ -39,7 +40,9 @@ const ProfileMenu: FC<ProfileProps> = ({ username }) => {
                 <Link>My Posts</Link>
               </NextLink>
             </MenuItem>
-            <MenuItem>Your Comments</MenuItem>
+            <MenuItem onClick={() => Router.push("/my-comments")}>
+              Your Comments
+            </MenuItem>
             <MenuItem>Friends</MenuItem>
             <MenuItem>Your Rooms</MenuItem>
             <MenuItem>

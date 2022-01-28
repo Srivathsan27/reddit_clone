@@ -14,6 +14,7 @@ interface PostProps {
   uploadedAt: Date;
   hits: number;
   hitStatus: number;
+  numberOfComments: number;
 }
 
 const PostItem: FC<PostProps> = ({
@@ -24,12 +25,18 @@ const PostItem: FC<PostProps> = ({
   title,
   content,
   hits,
+  numberOfComments,
   ..._
 }) => {
   return (
     <Card>
       <Flex gap={3} alignItems="flex-start">
-        <HitSection postId={id} hitStatus={hitStatus} hits={hits} />
+        <HitSection
+          postId={id}
+          hitStatus={hitStatus}
+          hits={hits}
+          numberOfComments={numberOfComments}
+        />
         <Box flex={0.88} pb={3}>
           <NextLink href={`/post/${id}`}>
             <Link>

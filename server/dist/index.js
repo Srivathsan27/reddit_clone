@@ -29,6 +29,9 @@ const User_1 = require("./entities/User");
 const post_1 = require("./resolvers/post");
 const user_1 = require("./resolvers/user");
 const userLoader_1 = require("./Loaders/userLoader");
+const Comment_1 = require("./entities/Comment");
+const comment_1 = require("./resolvers/comment");
+const postTitleLoader_1 = require("./Loaders/postTitleLoader");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
     const mongoStore = (0, connect_mongodb_session_1.default)(express_session_1.default);
@@ -41,7 +44,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         logging: true,
         synchronize: true,
         migrations: [path_1.default.join(__dirname, "./migrations/*")],
-        entities: [User_1.User, Post_1.Post, Hit_1.Hit],
+        entities: [User_1.User, Post_1.Post, Hit_1.Hit, Comment_1.Comment],
     });
     // await Post.delete({});
     // const t = 1;
@@ -68,11 +71,16 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
         schema: yield (0, type_graphql_1.buildSchema)({
-            resolvers: [user_1.UserResolver, post_1.PostResolver],
+            resolvers: [user_1.UserResolver, post_1.PostResolver, comment_1.CommentResolver],
             validate: false,
         }),
         plugins: [graphqlPlayground_1.ApolloServerPluginLandingPageGraphQLPlayground],
-        context: ({ req, res }) => ({ req, res, userLoader: (0, userLoader_1.createUserLoader)() }),
+        context: ({ req, res }) => ({
+            req,
+            res,
+            userLoader: (0, userLoader_1.createUserLoader)(),
+            postTitleLoader: (0, postTitleLoader_1.createPostTitleLoader)(),
+        }),
     });
     yield apolloServer.start();
     apolloServer.applyMiddleware({

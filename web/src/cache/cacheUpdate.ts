@@ -16,6 +16,7 @@ import {
   ChangePasswordMutation,
   DeletePostMutationVariables,
   UpdatePostMutationVariables,
+  CommentPostMutationVariables,
 } from "../generated/graphql";
 
 function updateCache<Result, Query>(
@@ -37,8 +38,6 @@ export const cacheUpdates = {
       cache: Cache,
       info: ResolveInfo
     ) => {
-      console.log("here");
-      console.log(post, value);
       const data = cache.readFragment(
         gql`
           fragment _ on Post {
@@ -77,6 +76,63 @@ export const cacheUpdates = {
         );
       }
     },
+    addComment: (
+      result: DataFields,
+      args: CommentPostMutationVariables,
+      cache: Cache,
+      info: ResolveInfo
+    ) => {
+      cache.invalidate("Query", "post", {
+        id: args.post,
+      });
+      cache.invalidate("Query", "posts", {
+        limit: 10,
+      });
+      const allFields = cache.inspectFields("Query");
+      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
+      fieldInfos.forEach((fi) => {
+        cache.invalidate("Query", "posts", fi.arguments);
+      });
+    },
+    updateComment: (
+      result: DataFields,
+      args: CommentPostMutationVariables,
+      cache: Cache,
+      info: ResolveInfo
+    ) => {
+      cache.invalidate("Query", "post", {
+        id: args.post,
+      });
+      cache.invalidate("Query", "myComments");
+
+      cache.invalidate("Query", "posts", {
+        limit: 10,
+      });
+      const allFields = cache.inspectFields("Query");
+      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
+      fieldInfos.forEach((fi) => {
+        cache.invalidate("Query", "posts", fi.arguments);
+      });
+    },
+    deleteComment: (
+      result: DataFields,
+      args: CommentPostMutationVariables,
+      cache: Cache,
+      info: ResolveInfo
+    ) => {
+      cache.invalidate("Query", "post", {
+        id: args.post,
+      });
+      cache.invalidate("Query", "myComments");
+      cache.invalidate("Query", "posts", {
+        limit: 10,
+      });
+      const allFields = cache.inspectFields("Query");
+      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
+      fieldInfos.forEach((fi) => {
+        cache.invalidate("Query", "posts", fi.arguments);
+      });
+    },
     newPost: (
       result: DataFields,
       args: Variables,
@@ -112,6 +168,17 @@ export const cacheUpdates = {
           }
         }
       );
+      const allFields = cache.inspectFields("Query");
+      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
+      fieldInfos.forEach((fi) => {
+        cache.invalidate("Query", "posts", fi.arguments);
+      });
+      const allPostFields = allFields.filter(
+        (info) => info.fieldName === "post"
+      );
+      allPostFields.forEach((fi) => {
+        cache.invalidate("Query", "post", fi.arguments);
+      });
     },
     login: (
       result: DataFields,
@@ -126,6 +193,13 @@ export const cacheUpdates = {
       const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
       fieldInfos.forEach((fi) => {
         cache.invalidate("Query", "posts", fi.arguments);
+      });
+
+      const allPostFields = allFields.filter(
+        (info) => info.fieldName === "post"
+      );
+      allPostFields.forEach((fi) => {
+        cache.invalidate("Query", "post", fi.arguments);
       });
 
       updateCache<LoginMutation, MeQuery>(
@@ -156,6 +230,13 @@ export const cacheUpdates = {
       const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
       fieldInfos.forEach((fi) => {
         cache.invalidate("Query", "posts", fi.arguments);
+      });
+
+      const allPostFields = allFields.filter(
+        (info) => info.fieldName === "post"
+      );
+      allPostFields.forEach((fi) => {
+        cache.invalidate("Query", "post", fi.arguments);
       });
 
       updateCache<ChangePasswordMutation, MeQuery>(
@@ -202,6 +283,14 @@ export const cacheUpdates = {
       const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
       fieldInfos.forEach((fi) => {
         cache.invalidate("Query", "posts", fi.arguments);
+      });
+
+      const allPostFields = allFields.filter(
+        (info) => info.fieldName === "post"
+      );
+      allPostFields.forEach((fi) => {
+        console.log(fi.arguments);
+        cache.invalidate("Query", "post", fi.arguments);
       });
 
       updateCache<LogoutMutation, MeQuery>(
@@ -265,7 +354,6 @@ export const cacheUpdates = {
           `,
           { id, title, content, contentSnip: content.slice(0, 80) }
         );
-        console.log(cache.inspectFields("updatePost"));
       }
     },
   },

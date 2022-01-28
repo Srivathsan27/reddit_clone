@@ -21,6 +21,24 @@ export type BooleanResponse = {
   status?: Maybe<Scalars['Boolean']>;
 };
 
+export type Comment = {
+  __typename?: 'Comment';
+  createdAt: Scalars['String'];
+  isOwnComment: Scalars['Boolean'];
+  postId: Scalars['Int'];
+  postTitle: Scalars['String'];
+  text: Scalars['String'];
+  updatedAt: Scalars['String'];
+  user: User;
+  userId: Scalars['Int'];
+};
+
+export type CommentResponse = {
+  __typename?: 'CommentResponse';
+  comment?: Maybe<Comment>;
+  error?: Maybe<FieldError>;
+};
+
 export type FieldError = {
   __typename?: 'FieldError';
   field: Scalars['String'];
@@ -29,8 +47,10 @@ export type FieldError = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addComment: CommentResponse;
   changePassword?: Maybe<UserResponse>;
   delete: BooleanResponse;
+  deleteComment: Scalars['Boolean'];
   forgotPassword: Scalars['Boolean'];
   hitPost: Scalars['Boolean'];
   login: UserResponse;
@@ -38,7 +58,14 @@ export type Mutation = {
   newPost: PostResponse;
   register: UserResponse;
   resetPassword: BooleanResponse;
+  updateComment: Scalars['String'];
   updatePost: PostResponse;
+};
+
+
+export type MutationAddCommentArgs = {
+  comment: Scalars['String'];
+  post: Scalars['Int'];
 };
 
 
@@ -50,6 +77,11 @@ export type MutationChangePasswordArgs = {
 
 export type MutationDeleteArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationDeleteCommentArgs = {
+  post: Scalars['Int'];
 };
 
 
@@ -85,6 +117,12 @@ export type MutationResetPasswordArgs = {
 };
 
 
+export type MutationUpdateCommentArgs = {
+  post: Scalars['Int'];
+  text: Scalars['String'];
+};
+
+
 export type MutationUpdatePostArgs = {
   id: Scalars['Int'];
   input: PostInput;
@@ -92,6 +130,7 @@ export type MutationUpdatePostArgs = {
 
 export type Post = {
   __typename?: 'Post';
+  comments: Array<Comment>;
   content: Scalars['String'];
   contentSnip: Scalars['String'];
   createdAt: Scalars['String'];
@@ -100,6 +139,7 @@ export type Post = {
   hitStatus: Scalars['Int'];
   id: Scalars['Float'];
   isOwnPost: Scalars['Boolean'];
+  numberOfComments: Scalars['Int'];
   numberOfHits: Scalars['Int'];
   title: Scalars['String'];
   updatedAt: Scalars['String'];
@@ -130,7 +170,9 @@ export type PostsResponse = {
 
 export type Query = {
   __typename?: 'Query';
+  comments: Array<Comment>;
   me?: Maybe<User>;
+  myComments: Array<Comment>;
   myPosts: PostsResponse;
   post: PostResponse;
   posts: PostsResponse;
@@ -175,11 +217,19 @@ export type UserResponse = {
   user?: Maybe<User>;
 };
 
-export type Post_AllFragment = { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } };
+export type Post_AllFragment = { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, numberOfComments: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } };
 
-export type Single_PostFragment = { __typename?: 'Post', id: number, hitStatus: number, isOwnPost: boolean, title: string, content: string, numberOfHits: number, creator: { __typename?: 'User', id: number, username: string } };
+export type Single_PostFragment = { __typename?: 'Post', id: number, hitStatus: number, isOwnPost: boolean, title: string, content: string, numberOfHits: number, comments: Array<{ __typename?: 'Comment', userId: number, postId: number, isOwnComment: boolean, text: string, createdAt: string, user: { __typename?: 'User', username: string } }>, creator: { __typename?: 'User', id: number, username: string } };
 
 export type User_AllFragment = { __typename?: 'User', id: number, createdAt: string, updatedAt: string, username: string, email: string };
+
+export type CommentPostMutationVariables = Exact<{
+  post: Scalars['Int'];
+  comment: Scalars['String'];
+}>;
+
+
+export type CommentPostMutation = { __typename?: 'Mutation', addComment: { __typename?: 'CommentResponse', comment?: { __typename?: 'Comment', userId: number, postId: number, text: string } | null | undefined, error?: { __typename?: 'FieldError', field: string, message: string } | null | undefined } };
 
 export type ChangePasswordMutationVariables = Exact<{
   token: Scalars['String'];
@@ -194,7 +244,14 @@ export type CreateNewPostMutationVariables = Exact<{
 }>;
 
 
-export type CreateNewPostMutation = { __typename?: 'Mutation', newPost: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
+export type CreateNewPostMutation = { __typename?: 'Mutation', newPost: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, numberOfComments: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
+
+export type DeleteCommentMutationVariables = Exact<{
+  post: Scalars['Int'];
+}>;
+
+
+export type DeleteCommentMutation = { __typename?: 'Mutation', deleteComment: boolean };
 
 export type DeletePostMutationVariables = Exact<{
   id: Scalars['Int'];
@@ -248,6 +305,14 @@ export type ResetPasswordMutationVariables = Exact<{
 
 export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'BooleanResponse', status?: boolean | null | undefined, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined } };
 
+export type UpdateCommentMutationVariables = Exact<{
+  post: Scalars['Int'];
+  text: Scalars['String'];
+}>;
+
+
+export type UpdateCommentMutation = { __typename?: 'Mutation', updateComment: string };
+
 export type UpdatePostMutationVariables = Exact<{
   id: Scalars['Int'];
   input: PostInput;
@@ -261,20 +326,25 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: number, createdAt: string, updatedAt: string, username: string, email: string } | null | undefined };
 
+export type MyCommentsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyCommentsQuery = { __typename?: 'Query', myComments: Array<{ __typename?: 'Comment', postId: number, text: string, createdAt: string, postTitle: string, isOwnComment: boolean }> };
+
 export type MyPostsQueryVariables = Exact<{
   limit: Scalars['Int'];
   cursor?: InputMaybe<Scalars['String']>;
 }>;
 
 
-export type MyPostsQuery = { __typename?: 'Query', myPosts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
+export type MyPostsQuery = { __typename?: 'Query', myPosts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, numberOfComments: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
 
 export type PostQueryVariables = Exact<{
   id: Scalars['Int'];
 }>;
 
 
-export type PostQuery = { __typename?: 'Query', post: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, hitStatus: number, isOwnPost: boolean, title: string, content: string, numberOfHits: number, creator: { __typename?: 'User', id: number, username: string } } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
+export type PostQuery = { __typename?: 'Query', post: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, hitStatus: number, isOwnPost: boolean, title: string, content: string, numberOfHits: number, comments: Array<{ __typename?: 'Comment', userId: number, postId: number, isOwnComment: boolean, text: string, createdAt: string, user: { __typename?: 'User', username: string } }>, creator: { __typename?: 'User', id: number, username: string } } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
 
 export type PostsQueryVariables = Exact<{
   limit: Scalars['Float'];
@@ -282,7 +352,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, numberOfComments: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
 
 export const Post_AllFragmentDoc = gql`
     fragment post_all on Post {
@@ -292,6 +362,7 @@ export const Post_AllFragmentDoc = gql`
   title
   contentSnip
   numberOfHits
+  numberOfComments
   hitStatus
   creatorId
   creator {
@@ -308,6 +379,16 @@ export const Single_PostFragmentDoc = gql`
   title
   content
   numberOfHits
+  comments {
+    userId
+    postId
+    isOwnComment
+    text
+    createdAt
+    user {
+      username
+    }
+  }
   creator {
     id
     username
@@ -323,6 +404,25 @@ export const User_AllFragmentDoc = gql`
   email
 }
     `;
+export const CommentPostDocument = gql`
+    mutation CommentPost($post: Int!, $comment: String!) {
+  addComment(post: $post, comment: $comment) {
+    comment {
+      userId
+      postId
+      text
+    }
+    error {
+      field
+      message
+    }
+  }
+}
+    `;
+
+export function useCommentPostMutation() {
+  return Urql.useMutation<CommentPostMutation, CommentPostMutationVariables>(CommentPostDocument);
+};
 export const ChangePasswordDocument = gql`
     mutation ChangePassword($token: String!, $password: String!) {
   changePassword(token: $token, password: $password) {
@@ -356,6 +456,15 @@ export const CreateNewPostDocument = gql`
 
 export function useCreateNewPostMutation() {
   return Urql.useMutation<CreateNewPostMutation, CreateNewPostMutationVariables>(CreateNewPostDocument);
+};
+export const DeleteCommentDocument = gql`
+    mutation DeleteComment($post: Int!) {
+  deleteComment(post: $post)
+}
+    `;
+
+export function useDeleteCommentMutation() {
+  return Urql.useMutation<DeleteCommentMutation, DeleteCommentMutationVariables>(DeleteCommentDocument);
 };
 export const DeletePostDocument = gql`
     mutation DeletePost($id: Int!) {
@@ -448,6 +557,15 @@ export const ResetPasswordDocument = gql`
 export function useResetPasswordMutation() {
   return Urql.useMutation<ResetPasswordMutation, ResetPasswordMutationVariables>(ResetPasswordDocument);
 };
+export const UpdateCommentDocument = gql`
+    mutation UpdateComment($post: Int!, $text: String!) {
+  updateComment(post: $post, text: $text)
+}
+    `;
+
+export function useUpdateCommentMutation() {
+  return Urql.useMutation<UpdateCommentMutation, UpdateCommentMutationVariables>(UpdateCommentDocument);
+};
 export const UpdatePostDocument = gql`
     mutation UpdatePost($id: Int!, $input: PostInput!) {
   updatePost(input: $input, id: $id) {
@@ -477,6 +595,21 @@ export const MeDocument = gql`
 
 export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
+};
+export const MyCommentsDocument = gql`
+    query MyComments {
+  myComments {
+    postId
+    text
+    createdAt
+    postTitle
+    isOwnComment
+  }
+}
+    `;
+
+export function useMyCommentsQuery(options: Omit<Urql.UseQueryArgs<MyCommentsQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<MyCommentsQuery>({ query: MyCommentsDocument, ...options });
 };
 export const MyPostsDocument = gql`
     query MyPosts($limit: Int!, $cursor: String) {

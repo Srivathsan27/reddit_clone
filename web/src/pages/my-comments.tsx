@@ -1,0 +1,42 @@
+import { Flex, Heading, Skeleton } from "@chakra-ui/react";
+import { withUrqlClient } from "next-urql";
+import { FC } from "react";
+import { createURQLClient } from "../cache/client";
+import CommentList from "../components/commnets/CommentList";
+import Card from "../components/UI/Card";
+import Wrapper from "../components/UI/Wrapper";
+import { useMeQuery, useMyCommentsQuery } from "../generated/graphql";
+
+interface MyCommentsProps {}
+
+const MyComments: FC<MyCommentsProps> = ({}) => {
+  const [{ data: userData, fetching: userFetching }] = useMeQuery();
+  const [{ data: commentData, fetching: commentFetching }] =
+    useMyCommentsQuery();
+
+  return (
+    <Flex pt={12} pb={12}>
+      <Wrapper type="medium">
+        <Skeleton
+          minH={"50vh"}
+          minW={"40vw"}
+          isLoaded={!userFetching && !commentFetching}
+        >
+          {!userFetching && !commentFetching && (
+            <Card>
+              <Heading size="lg" pl={5} pt={6}>
+                My Comments
+              </Heading>
+              <CommentList
+                comments={commentData?.myComments as any[]}
+                user={userData}
+              />
+            </Card>
+          )}
+        </Skeleton>
+      </Wrapper>
+    </Flex>
+  );
+};
+
+export default withUrqlClient(createURQLClient)(MyComments);

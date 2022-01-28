@@ -1,5 +1,6 @@
-import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
+import { ArrowUpIcon, ArrowDownIcon, ChatIcon } from "@chakra-ui/icons";
 import { Flex, IconButton, Box, Text } from "@chakra-ui/react";
+import Router from "next/router";
 import { FC, useState } from "react";
 import { useHitPostMutation } from "../../generated/graphql";
 
@@ -7,9 +8,15 @@ interface HitSectionProps {
   postId: number;
   hitStatus: number;
   hits: number;
+  numberOfComments: number;
 }
 
-const HitSection: FC<HitSectionProps> = ({ postId: id, hitStatus, hits }) => {
+const HitSection: FC<HitSectionProps> = ({
+  postId: id,
+  hitStatus,
+  hits,
+  numberOfComments,
+}) => {
   const [, hit] = useHitPostMutation();
   const [loading, setLoading] = useState<"hit" | "dump" | "none">("none");
 
@@ -58,6 +65,24 @@ const HitSection: FC<HitSectionProps> = ({ postId: id, hitStatus, hits }) => {
         onClick={dumpHander}
         isLoading={loading === "dump"}
       />
+      <Flex direction="column" gap={0} align="center" justify="flex-start">
+        <IconButton
+          colorScheme="black"
+          aria-label="Comments"
+          size="md"
+          borderRadius="50%"
+          icon={<ChatIcon color="teal.500" />}
+          onClick={() => Router.push(`/post/${id}`)}
+        />
+        <Box
+          boxSizing="border-box"
+          // position="absolute"
+          // bottom="-4px"
+          // right="-6px"
+        >
+          <Text color="blue.500">{numberOfComments}</Text>
+        </Box>
+      </Flex>
     </Flex>
   );
 };

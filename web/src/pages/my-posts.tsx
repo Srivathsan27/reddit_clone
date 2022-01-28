@@ -34,7 +34,7 @@ const MyPosts: FC = () => {
     const posts = postsData?.myPosts.posts as Post[];
 
     body = (
-      <Flex pt="5%" direction="column" gap={12}>
+      <Flex pt="5%" direction="column" gap={12} minH="85vh">
         <Heading size="lg" color="white" textAlign="center">
           My Posts
         </Heading>

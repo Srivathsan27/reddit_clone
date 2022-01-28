@@ -14,6 +14,7 @@ const typeorm_1 = require("typeorm");
 const type_graphql_1 = require("type-graphql");
 const User_1 = require("./User");
 const Hit_1 = require("./Hit");
+const Comment_1 = require("./Comment");
 let Post = class Post extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -63,6 +64,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Post.prototype, "hitStatus", void 0);
 __decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], Post.prototype, "numberOfComments", void 0);
+__decorate([
     (0, type_graphql_1.Field)(() => String),
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -72,6 +77,11 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], Post.prototype, "updatedAt", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => [Comment_1.Comment]),
+    (0, typeorm_1.OneToMany)(() => Comment_1.Comment, (comment) => comment.post),
+    __metadata("design:type", Array)
+], Post.prototype, "comments", void 0);
 Post = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

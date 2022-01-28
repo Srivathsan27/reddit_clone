@@ -5,6 +5,16 @@ fragment single_post on Post {
   title
   content
   numberOfHits
+  comments {
+    userId
+    postId
+    isOwnComment
+    text
+    createdAt
+    user {
+      username
+    }
+  }
   creator {
     id
     username

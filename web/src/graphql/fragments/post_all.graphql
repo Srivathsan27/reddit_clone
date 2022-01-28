@@ -5,6 +5,7 @@ fragment post_all on Post {
   title
   contentSnip
   numberOfHits
+  numberOfComments
   hitStatus
   creatorId
   creator {

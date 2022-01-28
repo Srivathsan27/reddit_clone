@@ -1,0 +1,9 @@
+query MyComments {
+  myComments {
+    postId
+    text
+    createdAt
+    postTitle
+    isOwnComment
+  }
+}
