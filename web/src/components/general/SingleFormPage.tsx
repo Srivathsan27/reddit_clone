@@ -23,6 +23,7 @@ const SingleFormPage: FC<SingleFormPageProps> = ({
             justify="center"
             direction="column"
             gap={8}
+            pb={8}
           >
             <Heading size="xl" color="white">
               Bubble.

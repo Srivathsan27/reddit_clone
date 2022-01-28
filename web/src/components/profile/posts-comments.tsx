@@ -6,22 +6,25 @@ import PostsSection from "./PostsSection";
 
 interface PostsCommentsProps {
   userId: number;
+  username: string;
 }
 
-const PostsComments: FC<PostsCommentsProps> = ({ userId }) => {
+const PostsComments: FC<PostsCommentsProps> = ({ userId, username }) => {
   return (
     <Wrapper>
       <Tabs colorScheme="blue" color="white" isLazy>
         <TabList>
-          <Tab>Posts</Tab>
-          <Tab>Comments</Tab>
+          <Tab fontSize="lg">Posts</Tab>
+          <Tab fontSize="lg">Comments</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
             <PostsSection userId={userId} />
           </TabPanel>
 
-          <TabPanel>{/* <CommentSection /> */}</TabPanel>
+          <TabPanel>
+            <CommentSection username={username} userId={userId} />
+          </TabPanel>
         </TabPanels>
       </Tabs>
     </Wrapper>

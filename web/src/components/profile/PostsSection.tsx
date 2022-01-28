@@ -33,7 +33,7 @@ const PostsSection: FC<PostsSectionProps> = ({ userId }) => {
   }
   const posts = postsData?.userPosts.posts ? postsData?.userPosts.posts : [];
   return (
-    <Skeleton isLoaded={!loadingPosts}>
+    <Skeleton minH="20vh" minW="30vw" isLoaded={!loadingPosts}>
       {!loadingPosts && (
         <PostList
           posts={posts}

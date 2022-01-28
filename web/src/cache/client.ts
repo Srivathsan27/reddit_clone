@@ -10,13 +10,16 @@ import {
 } from "@urql/exchange-graphcache";
 import Router from "next/router";
 import {
+  CombinedError,
   dedupExchange,
   Exchange,
   fetchExchange,
+  Operation,
   stringifyVariables,
 } from "urql";
 import { pipe, tap } from "wonka";
 import {
+  GetUserPostsQueryVariables,
   MyPostsQueryVariables,
   PostsQueryVariables,
 } from "../generated/graphql";
@@ -29,12 +32,14 @@ const errorExchange: Exchange =
     return pipe(
       forward(ops$),
       tap(({ error }) => {
-        if (error) {
+        if (error && !isServer()) {
           if (error.message.includes("not authorized")) {
             Router.replace("/login");
           } else {
             Router.replace("/");
           }
+        } else {
+          return;
         }
       })
     );
@@ -113,6 +118,7 @@ export const createURQLClient = (ssrExchange: any, ctx: any) => {
           Query: {
             posts: cursorPagination<PostsQueryVariables>(),
             myPosts: cursorPagination<MyPostsQueryVariables>(),
+            userPosts: cursorPagination<GetUserPostsQueryVariables>(),
           },
         },
         keys: {

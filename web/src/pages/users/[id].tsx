@@ -1,22 +1,25 @@
 import { Flex, Skeleton, useToast } from "@chakra-ui/react";
+import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
-import { useRouter } from "next/router";
-import { FC } from "react";
 import { createURQLClient } from "../../cache/client";
-import UserBio from "../../components/profile/UserBio";
 import UserProfile from "../../components/profile/UserProfile";
 import Wrapper from "../../components/UI/Wrapper";
-import { useGetProfileQuery } from "../../generated/graphql";
+import { useGetProfileQuery, useMeQuery } from "../../generated/graphql";
+import { useIsAuth } from "../../utils/hooks/useIsAuth";
 import { isServer } from "../../utils/isServer";
 
-interface UserProfilePageProps {}
+interface UserProfilePageProps {
+  id: string;
+}
 
-const UserProfilePage: FC<UserProfilePageProps> = ({}) => {
-  const router = useRouter();
+const UserProfilePage: NextPage<UserProfilePageProps> = ({ id }) => {
+  if (!isServer()) {
+    useIsAuth("/users/" + id);
+  }
 
   const [{ data, fetching, error }] = useGetProfileQuery({
     variables: {
-      id: +(router.query.id as string),
+      id: +id,
     },
   });
 
@@ -25,29 +28,25 @@ const UserProfilePage: FC<UserProfilePageProps> = ({}) => {
   if (error || data?.profile.errors) {
     console.log("resp err: ", error);
     console.log("error:", data?.profile.errors);
-    toast({
-      description: "Could not load user!",
-      title: "Error",
-      status: "error",
-      duration: 3000,
-      isClosable: true,
-      variant: "solid",
-    });
   }
 
   return (
-    <>
+    <Flex minH="85vh" align="center" justify="center">
       {data?.profile.user && (
         <Wrapper>
-          <Flex minH="85vh" align="center" justify="center">
-            <Skeleton isLoaded={!fetching} h="100%" w="100%">
-              {!fetching && <UserProfile user={data.profile.user} />}
-            </Skeleton>
-          </Flex>
+          <Skeleton isLoaded={!fetching} h="100%" w="100%">
+            {!fetching && <UserProfile user={data.profile.user} />}
+          </Skeleton>
         </Wrapper>
       )}
-    </>
+    </Flex>
   );
+};
+
+UserProfilePage.getInitialProps = async (ctx) => {
+  return {
+    id: ctx.query.id ? (ctx.query.id as string) : "",
+  };
 };
 
 export default withUrqlClient(createURQLClient, { ssr: true })(UserProfilePage);

@@ -12,7 +12,7 @@ const UserProfile: FC<UserProfileProps> = ({ user }) => {
   return (
     <Flex gap={12} direction="column" align="center" justify="center" p="50px">
       <UserBio user={user} />
-      <PostsComments userId={user.id} />
+      <PostsComments userId={user.id} username={user.username} />
     </Flex>
   );
 };

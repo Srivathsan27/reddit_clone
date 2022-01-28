@@ -14,24 +14,23 @@ interface PostListProps {
 const PostList: FC<PostListProps> = ({ posts, onClick, loadMore }) => {
   return (
     <Wrapper type="medium">
-      <Card>
-        <VStack
-          divider={<StackDivider borderColor="gray.200" />}
-          spacing={4}
-          align="stretch"
-        >
-          {posts && posts.map((post) => <PostItem post={post} />)}
-        </VStack>
-        {
-          <Flex mt={5} justifyContent={"center"} mb={10}>
-            {loadMore && (
-              <Button colorScheme="linkedin" onClick={onClick}>
-                Load More
-              </Button>
-            )}
-          </Flex>
-        }
-      </Card>
+      <VStack
+        mt={8}
+        divider={<StackDivider borderColor="gray.200" />}
+        spacing={4}
+        align="stretch"
+      >
+        {posts && posts.map((post) => <PostItem post={post} />)}
+      </VStack>
+      {
+        <Flex mt={5} justifyContent={"center"} mb={10}>
+          {loadMore && (
+            <Button colorScheme="linkedin" onClick={onClick}>
+              Load More
+            </Button>
+          )}
+        </Flex>
+      }
     </Wrapper>
   );
 };

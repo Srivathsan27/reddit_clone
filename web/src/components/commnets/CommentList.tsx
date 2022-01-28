@@ -1,4 +1,4 @@
-import { VStack, StackDivider } from "@chakra-ui/react";
+import { StackDivider, VStack } from "@chakra-ui/react";
 import { FC } from "react";
 import { MeQuery } from "../../generated/graphql";
 import CommentItem from "./CommentItem";
@@ -6,9 +6,10 @@ import CommentItem from "./CommentItem";
 interface CommentListProps {
   comments: any[];
   user?: MeQuery;
+  username?: string;
 }
 
-const CommentList: FC<CommentListProps> = ({ comments, user }) => {
+const CommentList: FC<CommentListProps> = ({ comments, user, username }) => {
   return (
     <VStack
       mt={7}
@@ -20,7 +21,7 @@ const CommentList: FC<CommentListProps> = ({ comments, user }) => {
         <CommentItem
           key={String(Math.random())}
           comment={comment}
-          user={user}
+          username={username ? username : user?.me?.username}
         ></CommentItem>
       ))}
     </VStack>
