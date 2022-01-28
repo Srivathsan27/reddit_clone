@@ -17,6 +17,9 @@ import {
   DeletePostMutationVariables,
   UpdatePostMutationVariables,
   CommentPostMutationVariables,
+  UpdateCommentMutationVariables,
+  DeleteCommentMutationVariables,
+  UpdateProfileMutationVariables,
 } from "../generated/graphql";
 
 function updateCache<Result, Query>(
@@ -82,41 +85,70 @@ export const cacheUpdates = {
       cache: Cache,
       info: ResolveInfo
     ) => {
+      cache.invalidate("Query", "myComments");
+      const data = cache.readFragment(
+        gql`
+          fragment _ on Post {
+            id
+            numberOfComments
+          }
+        `,
+        { id: args.post }
+      );
+      console.log("add comment: ", data);
+      if (data) {
+        cache.writeFragment(
+          gql`
+            fragment _ on Post {
+              id
+              numberOfComments
+            }
+          `,
+          { id: args.post, numberOfComments: data.numberOfComments + 1 }
+        );
+      }
       cache.invalidate("Query", "post", {
         id: args.post,
-      });
-      cache.invalidate("Query", "posts", {
-        limit: 10,
-      });
-      const allFields = cache.inspectFields("Query");
-      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
-      fieldInfos.forEach((fi) => {
-        cache.invalidate("Query", "posts", fi.arguments);
       });
     },
     updateComment: (
       result: DataFields,
-      args: CommentPostMutationVariables,
+      args: UpdateCommentMutationVariables,
       cache: Cache,
       info: ResolveInfo
     ) => {
-      cache.invalidate("Query", "post", {
-        id: args.post,
-      });
-      cache.invalidate("Query", "myComments");
+      console.log("here!");
 
-      cache.invalidate("Query", "posts", {
-        limit: 10,
-      });
-      const allFields = cache.inspectFields("Query");
-      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
-      fieldInfos.forEach((fi) => {
-        cache.invalidate("Query", "posts", fi.arguments);
-      });
+      const userId = cache.resolve(
+        cache.resolve("Query", "me") as string,
+        "id"
+      );
+      const data = cache.readFragment(
+        gql`
+          fragment _ on Comment {
+            postId
+            userId
+            text
+          }
+        `,
+        { postId: args.post, userId }
+      );
+      if (data) {
+        cache.writeFragment(
+          gql`
+            fragment _ on Comment {
+              postId
+              userId
+              text
+            }
+          `,
+          { postId: args.post, userId, text: args.text }
+        );
+      }
     },
     deleteComment: (
       result: DataFields,
-      args: CommentPostMutationVariables,
+      args: DeleteCommentMutationVariables,
       cache: Cache,
       info: ResolveInfo
     ) => {
@@ -124,14 +156,27 @@ export const cacheUpdates = {
         id: args.post,
       });
       cache.invalidate("Query", "myComments");
-      cache.invalidate("Query", "posts", {
-        limit: 10,
-      });
-      const allFields = cache.inspectFields("Query");
-      const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
-      fieldInfos.forEach((fi) => {
-        cache.invalidate("Query", "posts", fi.arguments);
-      });
+      const data = cache.readFragment(
+        gql`
+          fragment _ on Post {
+            id
+            numberOfComments
+          }
+        `,
+        { id: args.post }
+      );
+      console.log("delete comment: ", data);
+      if (data) {
+        cache.writeFragment(
+          gql`
+            fragment _ on Post {
+              id
+              numberOfComments
+            }
+          `,
+          { id: args.post, numberOfComments: data.numberOfComments - 1 }
+        );
+      }
     },
     newPost: (
       result: DataFields,
@@ -355,6 +400,16 @@ export const cacheUpdates = {
           { id, title, content, contentSnip: content.slice(0, 80) }
         );
       }
+    },
+    updateProfile: (
+      result: any,
+      { id }: UpdateProfileMutationVariables,
+      cache: Cache,
+      info: any
+    ) => {
+      cache.invalidate("Query", "profile", {
+        id,
+      });
     },
   },
 };

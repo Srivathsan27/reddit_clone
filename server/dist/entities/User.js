@@ -15,6 +15,7 @@ const typeorm_1 = require("typeorm");
 const Comment_1 = require("./Comment");
 const Hit_1 = require("./Hit");
 const Post_1 = require("./Post");
+const UserProfile_1 = require("./UserProfile");
 let User = class User extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -58,6 +59,11 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => Comment_1.Comment, (comment) => comment.user),
     __metadata("design:type", Array)
 ], User.prototype, "comments", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => UserProfile_1.UserProfile),
+    (0, typeorm_1.OneToOne)(() => UserProfile_1.UserProfile, (profile) => profile.user),
+    __metadata("design:type", UserProfile_1.UserProfile)
+], User.prototype, "profile", void 0);
 User = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

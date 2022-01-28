@@ -7,6 +7,8 @@ import {
   Icon,
   CloseButton,
   Link,
+  Flex,
+  Avatar,
 } from "@chakra-ui/react";
 import { AccountCircle } from "@mui/icons-material";
 import { FC } from "react";
@@ -24,7 +26,12 @@ const ProfileMenu: FC<ProfileProps> = ({ username }) => {
         <>
           <MenuButton isActive={isOpen} as={Button} mr={3} bg="transparent">
             {!isOpen ? (
-              <Icon as={AccountCircle} color="white" fontSize="xx-large" />
+              <Avatar
+                name={username as string}
+                size="sm"
+                bg="green.300"
+                color="blue.700"
+              />
             ) : (
               //   <Icon as={Clear} color="white" fontSize="xx-large" />
               <CloseButton />
@@ -32,23 +39,21 @@ const ProfileMenu: FC<ProfileProps> = ({ username }) => {
           </MenuButton>
           <MenuList>
             {username === null ? null : (
-              <MenuItem textAlign="right">Hello {username}</MenuItem>
+              <MenuItem textAlign="right" isDisabled>
+                Hello {username}
+              </MenuItem>
             )}
             <MenuItem>Profile</MenuItem>
-            <MenuItem>
-              <NextLink href="/my-posts">
-                <Link>My Posts</Link>
-              </NextLink>
+            <MenuItem onClick={() => Router.push("/my-posts")}>
+              My Posts
             </MenuItem>
             <MenuItem onClick={() => Router.push("/my-comments")}>
-              Your Comments
+              My Comments
             </MenuItem>
             <MenuItem>Friends</MenuItem>
             <MenuItem>Your Rooms</MenuItem>
-            <MenuItem>
-              <NextLink href="/reset-password">
-                <Link>Reset Password</Link>
-              </NextLink>
+            <MenuItem onClick={() => Router.push("/reset-password")}>
+              Reset Password
             </MenuItem>
           </MenuList>
         </>

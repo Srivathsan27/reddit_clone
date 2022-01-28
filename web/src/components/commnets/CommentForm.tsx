@@ -55,7 +55,7 @@ export const CommentForm: FC<CommentFormProps> = ({
         } else {
           toast({
             title: "Success",
-            description: "Created Post Successfully!",
+            description: "Created Comment Successfully!",
             duration: 5000,
             isClosable: true,
             position: "bottom",

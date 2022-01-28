@@ -41,6 +41,10 @@ const UserResponse_1 = require("../ObjectTypes/UserResponse");
 const BooleanResponse_1 = require("../ObjectTypes/BooleanResponse");
 const isUsernamePasswordValid_1 = require("../utils/isUsernamePasswordValid");
 const typeorm_1 = require("typeorm");
+const isAuth_1 = require("../middleware/isAuth");
+const UserProfile_1 = require("../entities/UserProfile");
+const ProfileResponse_1 = require("../ObjectTypes/ProfileResponse");
+const ProfileInput_1 = require("../InputTypes/ProfileInput");
 let UserResolver = class UserResolver {
     email(user, { req }) {
         if (req.session.userId === user.id) {
@@ -68,6 +72,9 @@ let UserResolver = class UserResolver {
                     username: input.username,
                     password: hashedPassword,
                     email: input.email,
+                }).save();
+                yield UserProfile_1.UserProfile.create({
+                    userId: user.id,
                 }).save();
                 req.session.userId = user.id;
                 req.session.cookie = new express_session_1.Cookie();
@@ -247,6 +254,70 @@ let UserResolver = class UserResolver {
             };
         });
     }
+    profile(id, { req }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = yield User_1.User.findOne(id, { relations: ["profile"] });
+                if (!user) {
+                    return {
+                        errors: [
+                            {
+                                field: "id",
+                                message: "the user does not exist!",
+                            },
+                        ],
+                    };
+                }
+                return {
+                    user: user,
+                };
+            }
+            catch (err) {
+                console.log(err);
+                return {
+                    errors: [
+                        {
+                            field: "id",
+                            message: "the user does not exist!",
+                        },
+                    ],
+                };
+            }
+        });
+    }
+    updateProfile(userId, input, { req }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { userId: currentUser } = req.session;
+            const profile = yield UserProfile_1.UserProfile.findOne(userId);
+            if (!profile) {
+                return {
+                    error: {
+                        field: "id",
+                        message: "the user does not exist",
+                    },
+                };
+            }
+            if (profile.userId !== currentUser) {
+                return {
+                    error: {
+                        field: "current user",
+                        message: "user not authorized",
+                    },
+                };
+            }
+            yield UserProfile_1.UserProfile.update({ userId: userId }, {
+                bio: input.bio ? input.bio : "",
+                name: input.name ? input.name : "",
+                sex: input.sex ? input.sex : "",
+            });
+            profile.bio = input.bio ? input.bio : "";
+            profile.name = input.name ? input.name : "";
+            profile.sex = input.sex ? input.sex : "";
+            return {
+                profile,
+            };
+        });
+    }
 };
 __decorate([
     (0, type_graphql_1.FieldResolver)(),
@@ -317,6 +388,25 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "resetPassword", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => UserResponse_1.UserResponse),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)("id", () => type_graphql_1.Int)),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "profile", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => ProfileResponse_1.ProfileResponse),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)("id", () => type_graphql_1.Int)),
+    __param(1, (0, type_graphql_1.Arg)("input", () => ProfileInput_1.ProfileInput)),
+    __param(2, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, ProfileInput_1.ProfileInput, Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "updateProfile", null);
 UserResolver = __decorate([
     (0, type_graphql_1.Resolver)(() => User_1.User)
 ], UserResolver);

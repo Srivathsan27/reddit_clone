@@ -47,7 +47,6 @@ const CommentSection: FC<CommentSectionProps> = ({
             />
           </Flex>
         )}
-        {comments && console.log("comments : ", comments)}
         {comments && <CommentList comments={comments} user={user} />}
       </Card>
     </Wrapper>

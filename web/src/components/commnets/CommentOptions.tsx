@@ -18,9 +18,10 @@ import UpdateCommentForm from "./UpdateCommentForm";
 
 interface CommentOptionsProps {
   postId: number;
+  text: string;
 }
 
-const CommentOptions: FC<CommentOptionsProps> = ({ postId }) => {
+const CommentOptions: FC<CommentOptionsProps> = ({ postId, text }) => {
   const { onOpen, onClose, isOpen } = useDisclosure();
 
   const [, deleteComment] = useDeleteCommentMutation();
@@ -67,7 +68,7 @@ const CommentOptions: FC<CommentOptionsProps> = ({ postId }) => {
         <PopoverContent p={5}>
           <PopoverArrow />
           <PopoverCloseButton />
-          <UpdateCommentForm postId={postId} />
+          <UpdateCommentForm postId={postId} text={text} />
         </PopoverContent>
       </Popover>
       <IconButton

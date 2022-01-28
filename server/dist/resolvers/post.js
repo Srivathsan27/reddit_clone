@@ -143,6 +143,27 @@ let PostResolver = class PostResolver {
             };
         });
     }
+    userPosts(id, limit, cursor) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let cur = new Date();
+            if (cursor) {
+                cur = new Date(+cursor);
+            }
+            const posts = yield (0, typeorm_1.getConnection)().query(`
+        select p.*
+        ,(select "hitValue" from hit h where h."userId" = $3 and h."postId" = p.id) "hitStatus"
+        ,(select count(*) from comment c where c."postId" = p.id ) "numberOfComments"
+        from post p
+        where p."creatorId" = $3 and p."createdAt" < $2
+        order by p."createdAt" DESC
+        limit $1
+    `, [limit + 1, cur, id]);
+            return {
+                hasMorePosts: posts.length === limit + 1,
+                posts: posts.slice(0, limit).map((post) => (Object.assign(Object.assign({}, post), { hitStatus: [-1, 1].includes(post.hitStatus) ? post.hitStatus : 0 }))),
+            };
+        });
+    }
     post(id, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
             const { userId } = req.session;
@@ -389,6 +410,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, String]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "myPosts", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => PostsResponse_1.PostsResponse),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)("id", () => type_graphql_1.Int)),
+    __param(1, (0, type_graphql_1.Arg)("limit", () => type_graphql_1.Int)),
+    __param(2, (0, type_graphql_1.Arg)("cursor", () => String, { nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, String]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "userPosts", null);
 __decorate([
     (0, type_graphql_1.Query)(() => PostResponse_1.PostResponse),
     (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),

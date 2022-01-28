@@ -15,7 +15,7 @@ const MyComments: FC<MyCommentsProps> = ({}) => {
     useMyCommentsQuery();
 
   return (
-    <Flex pt={12} pb={12}>
+    <Flex pt={12} pb={12} minH="85vh">
       <Wrapper type="medium">
         <Skeleton
           minH={"50vh"}

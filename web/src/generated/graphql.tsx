@@ -60,6 +60,7 @@ export type Mutation = {
   resetPassword: BooleanResponse;
   updateComment: Scalars['String'];
   updatePost: PostResponse;
+  updateProfile: ProfileResponse;
 };
 
 
@@ -128,6 +129,12 @@ export type MutationUpdatePostArgs = {
   input: PostInput;
 };
 
+
+export type MutationUpdateProfileArgs = {
+  id: Scalars['Int'];
+  input: ProfileInput;
+};
+
 export type Post = {
   __typename?: 'Post';
   comments: Array<Comment>;
@@ -168,6 +175,18 @@ export type PostsResponse = {
   posts?: Maybe<Array<Post>>;
 };
 
+export type ProfileInput = {
+  bio?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  sex?: InputMaybe<Scalars['String']>;
+};
+
+export type ProfileResponse = {
+  __typename?: 'ProfileResponse';
+  error?: Maybe<FieldError>;
+  profile?: Maybe<UserProfile>;
+};
+
 export type Query = {
   __typename?: 'Query';
   comments: Array<Comment>;
@@ -176,6 +195,9 @@ export type Query = {
   myPosts: PostsResponse;
   post: PostResponse;
   posts: PostsResponse;
+  profile: UserResponse;
+  userComments: Array<Comment>;
+  userPosts: PostsResponse;
   users: Array<User>;
 };
 
@@ -196,11 +218,29 @@ export type QueryPostsArgs = {
   limit: Scalars['Float'];
 };
 
+
+export type QueryProfileArgs = {
+  id: Scalars['Int'];
+};
+
+
+export type QueryUserCommentsArgs = {
+  id: Scalars['Int'];
+};
+
+
+export type QueryUserPostsArgs = {
+  cursor?: InputMaybe<Scalars['String']>;
+  id: Scalars['Int'];
+  limit: Scalars['Int'];
+};
+
 export type User = {
   __typename?: 'User';
   createdAt: Scalars['String'];
   email: Scalars['String'];
   id: Scalars['Int'];
+  profile: UserProfile;
   updatedAt: Scalars['String'];
   username: Scalars['String'];
 };
@@ -211,11 +251,22 @@ export type UserPassInput = {
   username: Scalars['String'];
 };
 
+export type UserProfile = {
+  __typename?: 'UserProfile';
+  bio: Scalars['String'];
+  isOwnProfile: Scalars['Boolean'];
+  name: Scalars['String'];
+  sex: Scalars['String'];
+  userId: Scalars['Float'];
+};
+
 export type UserResponse = {
   __typename?: 'UserResponse';
   errors?: Maybe<Array<FieldError>>;
   user?: Maybe<User>;
 };
+
+export type Comment_DetailsFragment = { __typename?: 'Comment', postId: number, text: string, createdAt: string, postTitle: string, isOwnComment: boolean };
 
 export type Post_AllFragment = { __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, numberOfComments: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } };
 
@@ -321,6 +372,21 @@ export type UpdatePostMutationVariables = Exact<{
 
 export type UpdatePostMutation = { __typename?: 'Mutation', updatePost: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, content: string, title: string } | null | undefined, errors?: { __typename?: 'PostError', field: string, message: string } | null | undefined } };
 
+export type UpdateProfileMutationVariables = Exact<{
+  id: Scalars['Int'];
+  values: ProfileInput;
+}>;
+
+
+export type UpdateProfileMutation = { __typename?: 'Mutation', updateProfile: { __typename?: 'ProfileResponse', profile?: { __typename?: 'UserProfile', userId: number, name: string, bio: string, sex: string } | null | undefined, error?: { __typename?: 'FieldError', field: string, message: string } | null | undefined } };
+
+export type GetProfileQueryVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type GetProfileQuery = { __typename?: 'Query', profile: { __typename?: 'UserResponse', user?: { __typename?: 'User', id: number, createdAt: string, updatedAt: string, username: string, profile: { __typename?: 'UserProfile', userId: number, isOwnProfile: boolean, name: string, bio: string, sex: string } } | null | undefined, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -354,6 +420,31 @@ export type PostsQueryVariables = Exact<{
 
 export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, numberOfComments: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
 
+export type GetCommentsQueryVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type GetCommentsQuery = { __typename?: 'Query', userComments: Array<{ __typename?: 'Comment', postId: number, text: string, createdAt: string, postTitle: string, isOwnComment: boolean }> };
+
+export type GetUserPostsQueryVariables = Exact<{
+  id: Scalars['Int'];
+  limit: Scalars['Int'];
+  cursor?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type GetUserPostsQuery = { __typename?: 'Query', userPosts: { __typename?: 'PostsResponse', hasMorePosts: boolean, posts?: Array<{ __typename?: 'Post', id: number, createdAt: string, updatedAt: string, title: string, contentSnip: string, numberOfHits: number, numberOfComments: number, hitStatus: number, creatorId: number, creator: { __typename?: 'User', id: number, username: string } }> | null | undefined } };
+
+export const Comment_DetailsFragmentDoc = gql`
+    fragment comment_details on Comment {
+  postId
+  text
+  createdAt
+  postTitle
+  isOwnComment
+}
+    `;
 export const Post_AllFragmentDoc = gql`
     fragment post_all on Post {
   id
@@ -585,6 +676,53 @@ export const UpdatePostDocument = gql`
 export function useUpdatePostMutation() {
   return Urql.useMutation<UpdatePostMutation, UpdatePostMutationVariables>(UpdatePostDocument);
 };
+export const UpdateProfileDocument = gql`
+    mutation UpdateProfile($id: Int!, $values: ProfileInput!) {
+  updateProfile(id: $id, input: $values) {
+    profile {
+      userId
+      name
+      bio
+      sex
+    }
+    error {
+      field
+      message
+    }
+  }
+}
+    `;
+
+export function useUpdateProfileMutation() {
+  return Urql.useMutation<UpdateProfileMutation, UpdateProfileMutationVariables>(UpdateProfileDocument);
+};
+export const GetProfileDocument = gql`
+    query GetProfile($id: Int!) {
+  profile(id: $id) {
+    user {
+      id
+      createdAt
+      updatedAt
+      username
+      profile {
+        userId
+        isOwnProfile
+        name
+        bio
+        sex
+      }
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
+    `;
+
+export function useGetProfileQuery(options: Omit<Urql.UseQueryArgs<GetProfileQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<GetProfileQuery>({ query: GetProfileDocument, ...options });
+};
 export const MeDocument = gql`
     query Me {
   me {
@@ -599,14 +737,10 @@ export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'q
 export const MyCommentsDocument = gql`
     query MyComments {
   myComments {
-    postId
-    text
-    createdAt
-    postTitle
-    isOwnComment
+    ...comment_details
   }
 }
-    `;
+    ${Comment_DetailsFragmentDoc}`;
 
 export function useMyCommentsQuery(options: Omit<Urql.UseQueryArgs<MyCommentsQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<MyCommentsQuery>({ query: MyCommentsDocument, ...options });
@@ -655,4 +789,29 @@ export const PostsDocument = gql`
 
 export function usePostsQuery(options: Omit<Urql.UseQueryArgs<PostsQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<PostsQuery>({ query: PostsDocument, ...options });
+};
+export const GetCommentsDocument = gql`
+    query GetComments($id: Int!) {
+  userComments(id: $id) {
+    ...comment_details
+  }
+}
+    ${Comment_DetailsFragmentDoc}`;
+
+export function useGetCommentsQuery(options: Omit<Urql.UseQueryArgs<GetCommentsQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<GetCommentsQuery>({ query: GetCommentsDocument, ...options });
+};
+export const GetUserPostsDocument = gql`
+    query GetUserPosts($id: Int!, $limit: Int!, $cursor: String) {
+  userPosts(id: $id, limit: $limit, cursor: $cursor) {
+    posts {
+      ...post_all
+    }
+    hasMorePosts
+  }
+}
+    ${Post_AllFragmentDoc}`;
+
+export function useGetUserPostsQuery(options: Omit<Urql.UseQueryArgs<GetUserPostsQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<GetUserPostsQuery>({ query: GetUserPostsDocument, ...options });
 };

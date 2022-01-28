@@ -122,6 +122,7 @@ export const createURQLClient = (ssrExchange: any, ctx: any) => {
           UserResponse: () => null,
           Comment: (comme) => comme.userId as string,
           User: (user) => user.username as string,
+          UserProfile: () => null,
         },
       }),
       ssrExchange,

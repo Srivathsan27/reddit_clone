@@ -1,0 +1,21 @@
+query GetProfile($id: Int!) {
+  profile(id: $id) {
+    user {
+      id
+      createdAt
+      updatedAt
+      username
+      profile {
+        userId
+        isOwnProfile
+        name
+        bio
+        sex
+      }
+    }
+    errors {
+      field
+      message
+    }
+  }
+}

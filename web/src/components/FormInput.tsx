@@ -15,12 +15,14 @@ type FormInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   boxProps?: SpacerProps;
   inputType?: "input" | "textarea";
+  labelColor?: string;
 };
 
 const FormInput: FC<FormInputProps> = ({
   size: _,
   boxProps,
   inputType,
+  labelColor,
   ...props
 }) => {
   let Comp: any = Input;
@@ -31,7 +33,12 @@ const FormInput: FC<FormInputProps> = ({
   return (
     <Box {...boxProps}>
       <FormControl isInvalid={!!error}>
-        <FormLabel htmlFor={field.name}>{props.label}</FormLabel>
+        <FormLabel
+          htmlFor={field.name}
+          color={labelColor ? labelColor : "teal"}
+        >
+          {props.label}
+        </FormLabel>
         <Comp
           color="white"
           {...props}

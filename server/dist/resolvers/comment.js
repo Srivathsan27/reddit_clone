@@ -50,6 +50,11 @@ let CommentResolver = class CommentResolver {
             return yield Comment_1.Comment.find({ where: { userId: req.session.userId } });
         });
     }
+    userComments(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield Comment_1.Comment.find({ where: { userId } });
+        });
+    }
     // Mutations:
     updateComment({ req }, postId, text) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -113,6 +118,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], CommentResolver.prototype, "myComments", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => [Comment_1.Comment]),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)("id", () => type_graphql_1.Int)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], CommentResolver.prototype, "userComments", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => String),
     (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),

@@ -6,15 +6,16 @@ import FormInput from "../FormInput";
 
 interface UpdateCommentFormProps {
   postId: number;
+  text: string;
 }
 
-const UpdateCommentForm: FC<UpdateCommentFormProps> = ({ postId }) => {
+const UpdateCommentForm: FC<UpdateCommentFormProps> = ({ postId, text }) => {
   const [, updateComment] = useUpdateCommentMutation();
 
   const toast = useToast();
   return (
     <Formik
-      initialValues={{ text: "" }}
+      initialValues={{ text }}
       onSubmit={async (values, { setErrors }) => {
         if (values.text === "") {
           setErrors({

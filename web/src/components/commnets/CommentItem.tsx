@@ -31,7 +31,9 @@ const CommentItem: FC<CommentItemProps> = ({ comment, user }) => {
           </Text>
         </Box>
         <Box flex={0.3}>
-          {comment.isOwnComment && <CommentOptions postId={comment.postId} />}
+          {comment.isOwnComment && (
+            <CommentOptions postId={comment.postId} text={comment.text} />
+          )}
         </Box>
       </Flex>
     </Flex>

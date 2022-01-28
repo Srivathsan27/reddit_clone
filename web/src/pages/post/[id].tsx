@@ -10,10 +10,15 @@ import PostOptions from "../../components/post/postOptions";
 import Card from "../../components/UI/Card";
 import Wrapper from "../../components/UI/Wrapper";
 import { usePostQuery } from "../../generated/graphql";
+import { useIsAuth } from "../../utils/hooks/useIsAuth";
+import { isServer } from "../../utils/isServer";
 
 interface PostProps {}
 const Post: FC<PostProps> = ({}) => {
   const router = useRouter();
+
+  if (!isServer()) useIsAuth("/post/" + router.query.id);
+
   let header: JSX.Element | null = null;
   const [{ data, fetching, error }] = usePostQuery({
     variables: {
@@ -57,6 +62,7 @@ const Post: FC<PostProps> = ({}) => {
           {!header && (
             <Flex minW="40vw" h="fit-content">
               <HitSection
+                numberOfComments={data?.post.post?.comments.length as number}
                 hits={data?.post.post?.numberOfHits as number}
                 postId={data?.post.post?.id as number}
                 hitStatus={data?.post.post?.hitStatus as number}
@@ -87,7 +93,6 @@ const Post: FC<PostProps> = ({}) => {
       </Skeleton>
 
       <Skeleton minH={"30vh"} minW="20vw" isLoaded={!fetching}>
-        {console.log("fetched Comments: ", data?.post.post?.comments)}
         <CommentSection
           comments={data?.post.post?.comments}
           postId={data?.post.post?.id as number}
