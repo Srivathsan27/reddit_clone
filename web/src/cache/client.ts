@@ -22,6 +22,7 @@ import {
   GetUserPostsQueryVariables,
   MyPostsQueryVariables,
   PostsQueryVariables,
+  User,
 } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
 import { cacheUpdates } from "./cacheUpdate";
@@ -125,9 +126,9 @@ export const createURQLClient = (ssrExchange: any, ctx: any) => {
           PostsResponse: () => null,
           PostResponse: () => null,
           BooleanResponse: () => null,
-          UserResponse: () => null,
+          UserResponse: (resp) => String((resp.user as User)?.id),
           Comment: (comme) => comme.userId as string,
-          User: (user) => user.username as string,
+          User: (user) => user.id as string,
           UserProfile: () => null,
         },
       }),

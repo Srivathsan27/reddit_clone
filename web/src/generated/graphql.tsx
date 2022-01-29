@@ -58,6 +58,8 @@ export type Mutation = {
   newPost: PostResponse;
   register: UserResponse;
   resetPassword: BooleanResponse;
+  tagUser: Scalars['Boolean'];
+  untagUser: Scalars['Boolean'];
   updateComment: Scalars['String'];
   updatePost: PostResponse;
   updateProfile: ProfileResponse;
@@ -115,6 +117,16 @@ export type MutationRegisterArgs = {
 export type MutationResetPasswordArgs = {
   current: Scalars['String'];
   new: Scalars['String'];
+};
+
+
+export type MutationTagUserArgs = {
+  friendId: Scalars['Int'];
+};
+
+
+export type MutationUntagUserArgs = {
+  friendId: Scalars['Int'];
 };
 
 
@@ -240,6 +252,7 @@ export type User = {
   createdAt: Scalars['String'];
   email: Scalars['String'];
   id: Scalars['Int'];
+  isTagged: Scalars['Boolean'];
   profile: UserProfile;
   updatedAt: Scalars['String'];
   username: Scalars['String'];
@@ -356,6 +369,20 @@ export type ResetPasswordMutationVariables = Exact<{
 
 export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'BooleanResponse', status?: boolean | null | undefined, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined } };
 
+export type TagUserMutationVariables = Exact<{
+  friendId: Scalars['Int'];
+}>;
+
+
+export type TagUserMutation = { __typename?: 'Mutation', tagUser: boolean };
+
+export type UntagUserMutationVariables = Exact<{
+  friendId: Scalars['Int'];
+}>;
+
+
+export type UntagUserMutation = { __typename?: 'Mutation', untagUser: boolean };
+
 export type UpdateCommentMutationVariables = Exact<{
   post: Scalars['Int'];
   text: Scalars['String'];
@@ -385,7 +412,7 @@ export type GetProfileQueryVariables = Exact<{
 }>;
 
 
-export type GetProfileQuery = { __typename?: 'Query', profile: { __typename?: 'UserResponse', user?: { __typename?: 'User', id: number, createdAt: string, updatedAt: string, username: string, profile: { __typename?: 'UserProfile', userId: number, isOwnProfile: boolean, name: string, bio: string, sex: string } } | null | undefined, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined } };
+export type GetProfileQuery = { __typename?: 'Query', profile: { __typename?: 'UserResponse', user?: { __typename?: 'User', id: number, createdAt: string, updatedAt: string, username: string, isTagged: boolean, profile: { __typename?: 'UserProfile', userId: number, isOwnProfile: boolean, name: string, bio: string, sex: string } } | null | undefined, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -648,6 +675,24 @@ export const ResetPasswordDocument = gql`
 export function useResetPasswordMutation() {
   return Urql.useMutation<ResetPasswordMutation, ResetPasswordMutationVariables>(ResetPasswordDocument);
 };
+export const TagUserDocument = gql`
+    mutation TagUser($friendId: Int!) {
+  tagUser(friendId: $friendId)
+}
+    `;
+
+export function useTagUserMutation() {
+  return Urql.useMutation<TagUserMutation, TagUserMutationVariables>(TagUserDocument);
+};
+export const UntagUserDocument = gql`
+    mutation UntagUser($friendId: Int!) {
+  untagUser(friendId: $friendId)
+}
+    `;
+
+export function useUntagUserMutation() {
+  return Urql.useMutation<UntagUserMutation, UntagUserMutationVariables>(UntagUserDocument);
+};
 export const UpdateCommentDocument = gql`
     mutation UpdateComment($post: Int!, $text: String!) {
   updateComment(post: $post, text: $text)
@@ -704,6 +749,7 @@ export const GetProfileDocument = gql`
       createdAt
       updatedAt
       username
+      isTagged
       profile {
         userId
         isOwnProfile

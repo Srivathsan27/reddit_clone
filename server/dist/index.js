@@ -33,6 +33,7 @@ const Comment_1 = require("./entities/Comment");
 const comment_1 = require("./resolvers/comment");
 const postTitleLoader_1 = require("./Loaders/postTitleLoader");
 const UserProfile_1 = require("./entities/UserProfile");
+const Tag_1 = require("./entities/Tag");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
     const mongoStore = (0, connect_mongodb_session_1.default)(express_session_1.default);
@@ -45,7 +46,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         logging: true,
         synchronize: true,
         migrations: [path_1.default.join(__dirname, "./migrations/*")],
-        entities: [User_1.User, Post_1.Post, Hit_1.Hit, Comment_1.Comment, UserProfile_1.UserProfile],
+        entities: [User_1.User, Post_1.Post, Hit_1.Hit, Comment_1.Comment, UserProfile_1.UserProfile, Tag_1.Tag],
     });
     // await Post.delete({});
     // const t = 1;

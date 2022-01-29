@@ -20,6 +20,10 @@ import {
   UpdateCommentMutationVariables,
   DeleteCommentMutationVariables,
   UpdateProfileMutationVariables,
+  TagUserMutationVariables,
+  UntagUserMutationVariables,
+  TagUserMutation,
+  UntagUserMutation,
 } from "../generated/graphql";
 
 function updateCache<Result, Query>(
@@ -175,6 +179,62 @@ export const cacheUpdates = {
             }
           `,
           { id: args.post, numberOfComments: data.numberOfComments - 1 }
+        );
+      }
+    },
+    tagUser: (
+      result: TagUserMutation,
+      args: TagUserMutationVariables,
+      cache: Cache,
+      info: ResolveInfo
+    ) => {
+      console.log("args: ", args.friendId);
+      const data = cache.readFragment(
+        gql`
+          fragment user on User {
+            id
+          }
+        `,
+        { id: args.friendId }
+      );
+      console.log("data : ", data);
+      if (data) {
+        cache.writeFragment(
+          gql`
+            fragment __ on User {
+              id
+              isTagged
+            }
+          `,
+          { id: args.friendId, isTagged: true }
+        );
+      }
+    },
+    untagUser: (
+      result: UntagUserMutation,
+      args: UntagUserMutationVariables,
+      cache: Cache,
+      info: ResolveInfo
+    ) => {
+      const data = cache.readFragment(
+        gql`
+          fragment _ on User {
+            id
+            isTagged
+          }
+        `,
+        { id: args.friendId }
+      );
+      console.log(data);
+      if (data) {
+        cache.writeFragment(
+          gql`
+            fragment __ on User {
+              id
+              isTagged
+            }
+          `,
+          { id: args.friendId, isTagged: false }
         );
       }
     },

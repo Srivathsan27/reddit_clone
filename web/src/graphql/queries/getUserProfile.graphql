@@ -5,6 +5,7 @@ query GetProfile($id: Int!) {
       createdAt
       updatedAt
       username
+      isTagged
       profile {
         userId
         isOwnProfile

@@ -258,6 +258,13 @@ let UserResolver = class UserResolver {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = yield User_1.User.findOne(id, { relations: ["profile"] });
+                const tagStatus = (yield (0, typeorm_1.getConnection)().query(`
+        select count(*) "tagStatus"
+        from tag t
+        where t."userId" = $1 and t."friendId" = $2
+      `, [req.session.userId, id]))[0].tagStatus;
+                console.log("tag-return: ", tagStatus);
+                const isTagged = tagStatus === "0" ? false : true;
                 if (!user) {
                     return {
                         errors: [
@@ -268,8 +275,9 @@ let UserResolver = class UserResolver {
                         ],
                     };
                 }
+                user.isTagged = isTagged;
                 return {
-                    user: user,
+                    user,
                 };
             }
             catch (err) {
@@ -282,6 +290,37 @@ let UserResolver = class UserResolver {
                         },
                     ],
                 };
+            }
+        });
+    }
+    tagUser({ req }, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (req.session.userId === id) {
+                return false;
+            }
+            try {
+                yield (0, typeorm_1.getConnection)().query(`
+      insert into tag("userId", "friendId") values ($1,$2) on conflict do nothing;
+      `, [req.session.userId, id]);
+                return true;
+            }
+            catch (err) {
+                console.log("error: ", err);
+                return false;
+            }
+        });
+    }
+    untagUser({ req }, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield (0, typeorm_1.getConnection)().query(`
+        delete from tag where "userId" = $1 and "friendId" = $2;
+      `, [req.session.userId, id]);
+                return true;
+            }
+            catch (err) {
+                console.log("error: ", err);
+                return false;
             }
         });
     }
@@ -397,6 +436,24 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "profile", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(1, (0, type_graphql_1.Arg)("friendId", () => type_graphql_1.Int)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "tagUser", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(1, (0, type_graphql_1.Arg)("friendId", () => type_graphql_1.Int)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "untagUser", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => ProfileResponse_1.ProfileResponse),
     (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),

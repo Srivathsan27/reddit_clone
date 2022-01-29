@@ -13,6 +13,7 @@ exports.User = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 const Comment_1 = require("./Comment");
+const Tag_1 = require("./Tag");
 const Hit_1 = require("./Hit");
 const Post_1 = require("./Post");
 const UserProfile_1 = require("./UserProfile");
@@ -48,6 +49,10 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
+    (0, type_graphql_1.Field)(),
+    __metadata("design:type", Boolean)
+], User.prototype, "isTagged", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => Post_1.Post, (post) => post.creator),
     __metadata("design:type", Array)
 ], User.prototype, "posts", void 0);
@@ -64,6 +69,10 @@ __decorate([
     (0, typeorm_1.OneToOne)(() => UserProfile_1.UserProfile, (profile) => profile.user),
     __metadata("design:type", UserProfile_1.UserProfile)
 ], User.prototype, "profile", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => Tag_1.Tag, (friend) => friend.user),
+    __metadata("design:type", Array)
+], User.prototype, "tags", void 0);
 User = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

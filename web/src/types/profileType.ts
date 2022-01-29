@@ -4,6 +4,7 @@ export type ProfileType = {
   createdAt: string;
   updatedAt: string;
   username: string;
+  isTagged: boolean;
   profile: {
     __typename?: "UserProfile" | undefined;
     isOwnProfile: boolean;
