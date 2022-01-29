@@ -8,6 +8,7 @@ import ProfileMenu from "./ProfileMenu";
 interface NavbarProps {
   isLoggedIn?: boolean;
   username?: string;
+  userId?: number;
 }
 
 const Title = () => {
@@ -22,7 +23,7 @@ const Title = () => {
   );
 };
 
-const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
+const Navbar: FC<NavbarProps> = ({ isLoggedIn, username, userId }) => {
   let bodyRight: any = null;
   let bodyLeft: any = null;
   const [{ fetching }, logout] = useLogoutMutation();
@@ -59,7 +60,10 @@ const Navbar: FC<NavbarProps> = ({ isLoggedIn, username }) => {
           Logout
         </Button>
         <NextLink href="/reset-password">
-          <ProfileMenu username={username ? username : null} />
+          <ProfileMenu
+            username={username ? username : null}
+            userId={userId ? userId : null}
+          />
         </NextLink>
       </Flex>
     );

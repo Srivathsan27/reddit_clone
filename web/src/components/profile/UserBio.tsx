@@ -1,4 +1,4 @@
-import { CheckIcon, EditIcon } from "@chakra-ui/icons";
+import { EditIcon } from "@chakra-ui/icons";
 import {
   Avatar,
   Box,
@@ -11,19 +11,14 @@ import {
   PopoverContent,
   PopoverTrigger,
   Text,
-  useToast,
   useDisclosure,
 } from "@chakra-ui/react";
-import { GroupAddOutlined } from "@mui/icons-material";
 import { FC } from "react";
-import {
-  useTagUserMutation,
-  useUntagUserMutation,
-} from "../../generated/graphql";
 import { Gender } from "../../types/gender";
 import { ProfileType } from "../../types/profileType";
 import { toUpperLowerCase } from "../../utils/toUpperLowerCase";
 import Card from "../UI/Card";
+import { TagOptions } from "./TagOptions";
 import UpdateProfileForm from "./UpdateProfileForm";
 
 interface UserBioProps {
@@ -32,10 +27,6 @@ interface UserBioProps {
 
 const UserBio: FC<UserBioProps> = ({ user }) => {
   const { onOpen, onClose, isOpen } = useDisclosure();
-  const [, tagUser] = useTagUserMutation();
-  const [, untagUser] = useUntagUserMutation();
-
-  const toast = useToast();
 
   return (
     <Card>
@@ -83,75 +74,7 @@ const UserBio: FC<UserBioProps> = ({ user }) => {
             </Popover>
           </Flex>
         ) : (
-          <Flex flex="0.08">
-            {user.isTagged ? (
-              <IconButton
-                aria-label="remove-friend"
-                icon={<CheckIcon color="green.700" />}
-                onClick={async () => {
-                  const resp = await untagUser({
-                    friendId: user.id,
-                  });
-                  if (resp.error || resp.data?.untagUser === false) {
-                    console.log(resp.error);
-                    console.log(resp.data?.untagUser);
-                    toast({
-                      duration: 4000,
-                      description: "Unable to untag the user!",
-                      status: "error",
-                      title: "Error",
-                      isClosable: true,
-                      position: "bottom-left",
-                      variant: "solid",
-                    });
-                  } else {
-                    toast({
-                      duration: 4000,
-                      description: "User untagged successfully!",
-                      status: "success",
-                      title: "User untagged",
-                      isClosable: true,
-                      position: "bottom-left",
-                      variant: "solid",
-                    });
-                  }
-                }}
-              />
-            ) : (
-              <IconButton
-                aria-label="add-friend"
-                icon={<GroupAddOutlined color="info" />}
-                onClick={async () => {
-                  const resp = await tagUser({
-                    friendId: user.id,
-                  });
-                  if (resp.error || resp.data?.tagUser === false) {
-                    console.log(resp.error);
-                    console.log(resp.data?.tagUser);
-                    toast({
-                      duration: 4000,
-                      description: "Unable to tag the user!",
-                      status: "error",
-                      title: "Error",
-                      isClosable: true,
-                      position: "bottom-left",
-                      variant: "solid",
-                    });
-                  } else {
-                    toast({
-                      duration: 4000,
-                      description: "User tagged successfully!",
-                      status: "success",
-                      title: "User tagged",
-                      isClosable: true,
-                      position: "bottom-left",
-                      variant: "solid",
-                    });
-                  }
-                }}
-              />
-            )}
-          </Flex>
+          <TagOptions isTagged={user.isTagged} userId={user.id} />
         )}
       </Flex>
     </Card>

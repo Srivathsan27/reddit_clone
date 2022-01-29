@@ -30,6 +30,7 @@ const PostList: FC<PostListProps> = ({ onClick, posts, loadMore }) => {
               hits={post.numberOfHits}
               hitStatus={post.hitStatus as number}
               numberOfComments={post.numberOfComments}
+              creatorId={post.creatorId}
             ></PostItem>
           ))}
       </VStack>

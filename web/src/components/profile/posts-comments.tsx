@@ -3,6 +3,7 @@ import { FC } from "react";
 import Wrapper from "../UI/Wrapper";
 import CommentSection from "./CommentSection";
 import PostsSection from "./PostsSection";
+import TagSection from "./TagSection";
 
 interface PostsCommentsProps {
   userId: number;
@@ -16,6 +17,7 @@ const PostsComments: FC<PostsCommentsProps> = ({ userId, username }) => {
         <TabList>
           <Tab fontSize="lg">Posts</Tab>
           <Tab fontSize="lg">Comments</Tab>
+          <Tab fontSize="lg">Tags</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -24,6 +26,9 @@ const PostsComments: FC<PostsCommentsProps> = ({ userId, username }) => {
 
           <TabPanel>
             <CommentSection username={username} userId={userId} />
+          </TabPanel>
+          <TabPanel>
+            <TagSection userId={userId} />
           </TabPanel>
         </TabPanels>
       </Tabs>

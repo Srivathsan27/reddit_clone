@@ -188,7 +188,13 @@ export const cacheUpdates = {
       cache: Cache,
       info: ResolveInfo
     ) => {
-      console.log("args: ", args.friendId);
+      const userId = cache.resolve(
+        cache.resolve("Query", "me") as string,
+        "id"
+      );
+      cache.invalidate("Query", "tagged", {
+        id: userId,
+      });
       const data = cache.readFragment(
         gql`
           fragment user on User {
@@ -216,6 +222,13 @@ export const cacheUpdates = {
       cache: Cache,
       info: ResolveInfo
     ) => {
+      const userId = cache.resolve(
+        cache.resolve("Query", "me") as string,
+        "id"
+      );
+      cache.invalidate("Query", "tagged", {
+        id: userId,
+      });
       const data = cache.readFragment(
         gql`
           fragment _ on User {

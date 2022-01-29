@@ -45,6 +45,7 @@ const isAuth_1 = require("../middleware/isAuth");
 const UserProfile_1 = require("../entities/UserProfile");
 const ProfileResponse_1 = require("../ObjectTypes/ProfileResponse");
 const ProfileInput_1 = require("../InputTypes/ProfileInput");
+const TaggedResponse_1 = require("../ObjectTypes/TaggedResponse");
 let UserResolver = class UserResolver {
     email(user, { req }) {
         if (req.session.userId === user.id) {
@@ -357,6 +358,39 @@ let UserResolver = class UserResolver {
             };
         });
     }
+    tagged(id, { req }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const data = (yield (0, typeorm_1.getConnection)().query(`
+      select 
+        u.id,
+        u.username,
+        (select count(*) from tag t where "userId" = $1 and "friendId" = u.id ) "isTagged"
+      from public.user u
+      where u.id in (
+        select "friendId" from tag where "userId" = $2
+      )
+    
+    `, [req.session.userId, id]));
+                data.forEach((user) => {
+                    user.isTagged = user.isTagged === "0" ? false : true;
+                    user.isOwnAccount = user.id === req.session.userId;
+                });
+                return {
+                    taggedUsers: data,
+                };
+            }
+            catch (err) {
+                console.log("error: ", err);
+                return {
+                    error: {
+                        field: "id",
+                        message: "the user does not exist!",
+                    },
+                };
+            }
+        });
+    }
 };
 __decorate([
     (0, type_graphql_1.FieldResolver)(),
@@ -464,6 +498,15 @@ __decorate([
     __metadata("design:paramtypes", [Number, ProfileInput_1.ProfileInput, Object]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "updateProfile", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => TaggedResponse_1.TaggedResponse),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)("id", () => type_graphql_1.Int)),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "tagged", null);
 UserResolver = __decorate([
     (0, type_graphql_1.Resolver)(() => User_1.User)
 ], UserResolver);

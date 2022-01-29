@@ -18,7 +18,13 @@ function MyApp({ Component, pageProps }) {
   if (fetching || !data?.me) {
     nav = <Navbar />;
   } else {
-    nav = <Navbar isLoggedIn={true} username={data.me.username} />;
+    nav = (
+      <Navbar
+        isLoggedIn={true}
+        username={data.me.username}
+        userId={data.me.id}
+      />
+    );
   }
 
   return (

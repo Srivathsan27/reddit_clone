@@ -1,25 +1,21 @@
 import {
+  Avatar,
+  Button,
+  CloseButton,
   Menu,
   MenuButton,
-  Button,
-  MenuList,
   MenuItem,
-  Icon,
-  CloseButton,
-  Link,
-  Flex,
-  Avatar,
+  MenuList,
 } from "@chakra-ui/react";
-import { AccountCircle } from "@mui/icons-material";
-import { FC } from "react";
-import NextLink from "next/link";
 import Router from "next/router";
+import { FC } from "react";
 
 interface ProfileProps {
   username: string | null;
+  userId: number | null;
 }
 
-const ProfileMenu: FC<ProfileProps> = ({ username }) => {
+const ProfileMenu: FC<ProfileProps> = ({ username, userId }) => {
   return (
     <Menu>
       {({ isOpen }) => (
@@ -33,7 +29,6 @@ const ProfileMenu: FC<ProfileProps> = ({ username }) => {
                 color="blue.700"
               />
             ) : (
-              //   <Icon as={Clear} color="white" fontSize="xx-large" />
               <CloseButton />
             )}
           </MenuButton>
@@ -43,15 +38,19 @@ const ProfileMenu: FC<ProfileProps> = ({ username }) => {
                 Hello {username}
               </MenuItem>
             )}
-            <MenuItem>Profile</MenuItem>
+            <MenuItem
+              onClick={() => {
+                Router.push(`/users/${userId}`);
+              }}
+            >
+              Profile
+            </MenuItem>
             <MenuItem onClick={() => Router.push("/my-posts")}>
               My Posts
             </MenuItem>
             <MenuItem onClick={() => Router.push("/my-comments")}>
               My Comments
             </MenuItem>
-            <MenuItem>Friends</MenuItem>
-            <MenuItem>Your Rooms</MenuItem>
             <MenuItem onClick={() => Router.push("/reset-password")}>
               Reset Password
             </MenuItem>

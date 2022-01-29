@@ -5,11 +5,13 @@ import { useHitPostMutation } from "../../generated/graphql";
 import Card from "../UI/Card";
 import NextLink from "next/link";
 import HitSection from "./HitSection";
+import Router from "next/router";
 
 interface PostProps {
   id: number;
   title: string;
   content: string;
+  creatorId: number;
   creator: string;
   uploadedAt: Date;
   hits: number;
@@ -26,6 +28,7 @@ const PostItem: FC<PostProps> = ({
   content,
   hits,
   numberOfComments,
+  creatorId,
   ..._
 }) => {
   return (
@@ -45,9 +48,14 @@ const PostItem: FC<PostProps> = ({
               </Heading>
             </Link>
           </NextLink>
-          <Text mt={0.4} p={3} fontSize="sm">
+          <Link
+            mt={0.4}
+            p={3}
+            fontSize="sm"
+            onClick={() => Router.push("/users/" + creatorId)}
+          >
             Post by {creator}. Uploaded at {uploadedAt.toUTCString()}
-          </Text>
+          </Link>
 
           <Text mt={5} pb={8} pl={3} fontSize="1.2em" width="94%">
             {content + (content.length === 80 ? "..." : "")}

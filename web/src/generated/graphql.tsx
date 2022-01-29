@@ -208,6 +208,7 @@ export type Query = {
   post: PostResponse;
   posts: PostsResponse;
   profile: UserResponse;
+  tagged: TaggedResponse;
   userComments: Array<Comment>;
   userPosts: PostsResponse;
   users: Array<User>;
@@ -236,6 +237,11 @@ export type QueryProfileArgs = {
 };
 
 
+export type QueryTaggedArgs = {
+  id: Scalars['Int'];
+};
+
+
 export type QueryUserCommentsArgs = {
   id: Scalars['Int'];
 };
@@ -245,6 +251,20 @@ export type QueryUserPostsArgs = {
   cursor?: InputMaybe<Scalars['String']>;
   id: Scalars['Int'];
   limit: Scalars['Int'];
+};
+
+export type TaggedResponse = {
+  __typename?: 'TaggedResponse';
+  error?: Maybe<FieldError>;
+  taggedUsers?: Maybe<Array<TaggedUser>>;
+};
+
+export type TaggedUser = {
+  __typename?: 'TaggedUser';
+  id: Scalars['Float'];
+  isOwnAccount: Scalars['Boolean'];
+  isTagged: Scalars['Boolean'];
+  username: Scalars['String'];
 };
 
 export type User = {
@@ -406,6 +426,13 @@ export type UpdateProfileMutationVariables = Exact<{
 
 
 export type UpdateProfileMutation = { __typename?: 'Mutation', updateProfile: { __typename?: 'ProfileResponse', profile?: { __typename?: 'UserProfile', userId: number, name: string, bio: string, sex: string } | null | undefined, error?: { __typename?: 'FieldError', field: string, message: string } | null | undefined } };
+
+export type TaggedUsersQueryVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type TaggedUsersQuery = { __typename?: 'Query', tagged: { __typename?: 'TaggedResponse', taggedUsers?: Array<{ __typename?: 'TaggedUser', id: number, isOwnAccount: boolean, username: string, isTagged: boolean }> | null | undefined, error?: { __typename?: 'FieldError', field: string, message: string } | null | undefined } };
 
 export type GetProfileQueryVariables = Exact<{
   id: Scalars['Int'];
@@ -740,6 +767,26 @@ export const UpdateProfileDocument = gql`
 
 export function useUpdateProfileMutation() {
   return Urql.useMutation<UpdateProfileMutation, UpdateProfileMutationVariables>(UpdateProfileDocument);
+};
+export const TaggedUsersDocument = gql`
+    query TaggedUsers($id: Int!) {
+  tagged(id: $id) {
+    taggedUsers {
+      id
+      isOwnAccount
+      username
+      isTagged
+    }
+    error {
+      field
+      message
+    }
+  }
+}
+    `;
+
+export function useTaggedUsersQuery(options: Omit<Urql.UseQueryArgs<TaggedUsersQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<TaggedUsersQuery>({ query: TaggedUsersDocument, ...options });
 };
 export const GetProfileDocument = gql`
     query GetProfile($id: Int!) {
